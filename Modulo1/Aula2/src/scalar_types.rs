@@ -93,7 +93,6 @@ fn chars() {
     let char_three_bytes = '€';
 }
 
-#[test]
 /// Strings são limitadas por aspas duplas "".
 fn strings() {
     /* Tipo da string literal é &str */
@@ -105,10 +104,6 @@ fn strings() {
     let str_two_byte = "£";
     /* String com 3 bytes e 1 caracter */
     let str_three_byte = "€";
-
-    println!("[{}] bytes: {}, letters: {}", str_one_byte, str_one_byte.len(), str_one_byte.chars().count());
-    println!("[{}] bytes: {}, letters: {}", str_two_byte, str_two_byte.len(), str_two_byte.chars().count());
-    println!("[{}] bytes: {}, letters: {}", str_three_byte, str_three_byte.len(), str_three_byte.chars().count());
 }
 
 /// Bytestring são limitadas por aspas duplas, iniciada pela letra b (b"").
