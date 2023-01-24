@@ -39,7 +39,7 @@ fn integers() {
     let unsigned_short: u16;    // uint16_t
     let unsigned_word: u32;     // uint32_t
     let unsigned_dword: u64;    // uint64_t
-    let unsigned_qword: u128;   // Sem equivalente em C
+    let unsigned_qword: u128;   // Sem equivalente em C90, no C23 uint128_t
     let unsigned_arch_dependent_size: usize; // size_t
 
     /* Inteiros com sinal */
@@ -47,7 +47,7 @@ fn integers() {
     let signed_short: i16;      // int16_t
     let signed_word: i32;       // int32_t
     let signed_dword: i64;      // int64_t
-    let signed_qword: i128;     // Sem equivalente em C
+    let signed_qword: i128;     // Sem equivalente em C90, no C23 uint128_t
     let signed_arch_dependent_size: isize;  // size_t
 }
 
@@ -79,18 +79,18 @@ fn type_inference() {
     /* Representação em octal. Inicia com 0o */
     let octal = 0o237;
     /* Representação em binário. Inicia com 0b */
-    let binary = 0b11;
+    let binary = 0b11u32;
 }
 
 /// Caracteres são sempre representados por aspas simples ''.
-/// Só pode haver um caracter nas aspas simples, mesmo que essa letra ocupe mais de um byte.
+/// Só pode haver um caracter nas aspas simples, mesmo que essa letra ocupe mais de um byte na
+/// tabela do unicode.
+/// Os caracteres ocupam 4 bytes
 fn chars() {
-    /* Caracter com 1 byte */
-    let char_one_byte = '$';
-    /* Caracter com 2 bytes */
-    let char_two_bytes = '£';
-    /* Caracter com 3 bytes */
-    let char_three_bytes = '€';
+    let unicode_one_byte = '$';
+    let unicode_two_bytes = '£';
+    let unicode_three_bytes = '€';
+    let unicode_four_bytes = '😊';
 }
 
 /// Strings são limitadas por aspas duplas "".
@@ -104,6 +104,8 @@ fn strings() {
     let str_two_byte = "£";
     /* String com 3 bytes e 1 caracter */
     let str_three_byte = "€";
+    /* String com 3 bytes e 1 caracter */
+    let str_three_byte = "😊";
 }
 
 /// Bytestring são limitadas por aspas duplas, iniciada pela letra b (b"").
@@ -135,7 +137,7 @@ fn casts_integers() {
 
     /* Erro de compilação. Não é possível fazer a conversão direta de um inteiro com sinal, para um
        inteiro sem sinal. O sentido contrário também é válido. */
-    // let a: u32 = 10i32;
+    let a: u32 = 10i32;
     // let a: i32 = 10u32;
     let a: u32 = 10i32 as u32;
 }
@@ -161,7 +163,7 @@ fn cast_int_to_bool() {
     let a = 1u8;
 
     /* Erro de compilação */
-    // let a = a as bool;
+    let a = a as bool;
 
     /* Forma correta de fazer o cast de inteiro para booleano */
     let a = a != 0 as bool;
@@ -194,7 +196,7 @@ fn digit_to_char() {
     let a = char::from_digit(2, 10).unwrap();
 
     /* Obtendo o dígito referente ao númeor 10 na base 16 ('a') */
-    let a = char::from_digit(10, 10).unwrap();
+    let a = char::from_digit(10, 16).unwrap();
 
     /* Erro em runtime. Pois não é possível converter 10 em apenas um caracter. */
     let a = char::from_digit(10, 10).unwrap();
