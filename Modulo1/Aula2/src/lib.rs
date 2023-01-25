@@ -378,23 +378,41 @@ fn call_ref_arguments() {
     ref_argument(d);
 }
 
-fn move_argument(a: [i32; 5]) {}
+fn move_argument(a: Vec<i32>) {}
 
-fn dont_move_argument(a: &[i32]) {}
+fn dont_move_argument(a: &Vec<i32>) {}
 
 #[test]
 fn call_move_argument() {
-    let a = [0i32; 5];
-    let b = [1i32; 5];
+    let a = vec![0, 0, 0, 0, 0];
+    let b = vec![1, 1, 1, 1, 1];
 
     move_argument(a);
-    println!("{:?}", a);
+    // println!("{:?}", a);
     dont_move_argument(&b);
     println!("{:?}", b);
 }
 
-// TODO Estudar
-fn mut_argument(mut n: i32) {}
+fn no_name_argument(_: Vec<i32>) {}
+
+fn mut_argument(mut v: Vec<i32>) {
+    v.push(1);
+    println!("v {:?}", v);
+}
+
+#[test]
+fn call_mut_argument() {
+    let v = vec![];
+
+    mut_argument(v);
+    no_name_argument(vec![]);
+
+    let u = vec![];
+    let mut w = u;
+
+    w.push(1);
+    println!("w {:?}", w);
+}
 
 fn unit_return() -> () {}
 
@@ -420,3 +438,9 @@ fn return_ref(a: &i32) -> &i32 {
 // }
 
 // fn invalid_default_value(a: i32 = 0) {}
+
+static FORTY_TWO: u8 = const_function();
+
+const fn const_function() -> u8 {
+    42
+}

@@ -40,8 +40,10 @@ fn call_move_argument() {
     println!("{:?}", b);
 }
 
-// TODO Estudar
-fn mut_argument(mut n: i32) {}
+fn mut_argument(mut n: i32) {
+    n += 1;
+    println!("{}", n);
+}
 
 fn unit_return() -> () {}
 
@@ -64,6 +66,12 @@ fn return_ref(a: &i32) -> &i32 {
 fn invalid_return_ref(a: &i32) -> &i32 {
     let b = 10;
     &b
+}
+
+static FORTY_TWO: u8 = const_function();
+
+const fn const_function() -> u8 {
+    42
 }
 
 fn invalid_default_value(a: i32 = 0) {}
