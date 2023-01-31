@@ -65,16 +65,20 @@ fn basic_slice() {
     let a = [1, 2, 3, 4, 5, 6];
     println!("a: {:?}", a);
 
-    let s = &a[..]; // a[2:4]
+    let s = &a[..]; // a[:]
     println!("{:?}", s);
 
-    let s = &a[2..4];
+    let a = &a[..2];
+    println!("{:?}", s);
+
+    let s = &a[2..4]; // a[2:4]
     println!("{:?}", s);
 }
 
 #[test]
 fn string_slice() {
     let a = String::from("Hello");
+    let a = "Hello".to_string();
 
     let b = &a;
     let c: &str = &a;
@@ -94,7 +98,7 @@ fn range() {
         println!("{}", n);
     }
 
-    let r = 0..10;
+    let r = 0..10u8;
     for n in r {
         println!("{}", n);
     }
@@ -172,6 +176,14 @@ fn call_mut_argument() {
     println!("w {:?}", w);
 }
 
+fn sum(a: i32, b: i32) -> i32 {
+    a + b
+}
+
+fn hello() {
+    println!("Hello");
+}
+
 fn unit_return() -> () {}
 
 fn empty() {
@@ -183,7 +195,9 @@ fn with_result() -> i32 {
 }
 
 fn with_result_no_semicolon() -> i32 {
-    0
+    let a = 20;
+    
+    a
 }
 
 fn return_ref(a: &i32) -> &i32 {
@@ -191,8 +205,8 @@ fn return_ref(a: &i32) -> &i32 {
 }
 
 // fn invalid_return_ref(a: &i32) -> &i32 {
-//     let b = 10;
-//     &b
+    // let b = 10;
+    // &b
 // }
 
 // fn invalid_default_value(a: i32 = 0) {}
@@ -201,4 +215,28 @@ static FORTY_TWO: u8 = const_function();
 
 const fn const_function() -> u8 {
     42
+}
+
+fn bar() -> i32 {
+    1
+}
+
+fn receive_func(callback: fn() -> i32) -> i32 {
+    callback()
+}
+
+#[test]
+fn foo() {
+    let mut a = 10;
+    {
+        let b = &mut a;
+
+        let recv = receive_func(bar);
+        println!("recv: {}", recv);
+
+        println!("{}", b);
+    }
+
+    let c = &a;
+    println!("{}", c);
 }
