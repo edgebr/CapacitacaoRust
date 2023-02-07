@@ -17,32 +17,49 @@ Introdução à linguagem de programação Rust
     * ~~Scalar Types~~
     * ~~Compound Types~~
 * **Aula 3**
-    * Basic Syntax
-    * References
-    * Dangling References
-    * Slices
-    * String vs str
-    * Functions
-    * Methods
-    * Overloading
-    * Variables
-    * Type Interence
-    * static & const
+    * ~~Basic Syntax~~
+    * ~~References~~
+    * ~~Dangling References~~
+    * ~~Slices~~
+    * ~~String vs str~~
+    * ~~Functions~~
+    * ~~Variables~~
+    * ~~Type Interence~~
 * **Aula 4**
     * Control Flow 1
-        * Blocks
-        * if expressions
-        * while expressions
-        * for expressions
-        * loop expressions
-        * break & continue
-* **Backlog**
+        * ~~Blocks~~
+        * ~~if expressions~~        
+        * ~~if let expressions~~
+        * ~~break~~
+ * **Aula 5**
+    * Control Flow 1
+        * ~~while expressions~~
+        * ~~while let expressions~~
+        * ~~for expressions~~
+        * ~~continue~~
+        * ~~loop expressions~~
+        * ~~Pattern Matching      
+        * ~~match expressions~~
+        * ~~Destructuring Enums~~
+        * ~~Destructuring Structs~~
+        * ~~Destructuring Arrays~~
+        * ~~Match Guards~~
+* **Backlog** 
+    * Structs
+    * Tuple Structs
+    * Field Shorthand Syntax
+    * Enums
+    * Variant Payloads
+    * Enum Sizes
+    * Methods
+    * Method Receiver
     * Memory Management
     * Stack vs Heap
     * Stack Memory
     * Manual Memory Management
     * Scope-Based Memory Management
     * Garbage Collection
+    * static & const
     * Rust Memory Management
     * Comparation
     * Ownership (x2)
@@ -56,19 +73,6 @@ Introdução à linguagem de programação Rust
     * Lifetimes
     * Lifetimes in Function Calls
     * Lifetimes in Data Structures
-    * Structs
-    * Tuple Structs
-    * Field Shorthand Syntax
-    * Enums
-    * Variant Payloads
-    * Enum Sizes
-    * Methods
-    * Method Receiver
-    * Pattern Matching
-    * if let expressions
-    * while let expressions
-    * match expressions
-    * Destructuring Enums
-    * Destructuring Structs
-    * Destructuring Arrays
-    * Match Guards
+    * Overloading
+    
+    
