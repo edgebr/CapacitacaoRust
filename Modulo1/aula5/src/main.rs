@@ -6,28 +6,6 @@ fn main() {
 #[cfg(test)]
 mod tests {
     #[test]
-    fn let_else_blocks_simple() {
-        let i: u8 = 150;
-        let j: u8 = 130;
-        let result = 'calc: {
-            let (res, false) = i.overflowing_add(j) else { break 'calc i; };
-            res
-        };
-        dbg!(result);
-    }
-
-    #[test]
-    fn while_simple() {
-        let mut slice: &[u8] = &[6, 7, 8, 9, 5, 4, 3, 2, 1];
-        print!("Items: [");
-        while slice.len() > 0 {
-            print!("{}, ", slice[0]);
-            slice = &slice[1..];
-        }
-        println!("]");
-    }
-
-    #[test]
     fn while_c_like() {
         let arr = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
 
@@ -42,11 +20,40 @@ mod tests {
     }
 
     #[test]
+    fn while_simple() {
+        let mut slice: &[u8] = &[6, 7, 8, 9, 5, 4, 3, 2, 1];
+        print!("Items: [");
+        while slice.len() > 0 {
+            print!("{}, ", slice[0]);
+            slice = &slice[1..];
+        }
+        println!("]");
+    }
+
+    #[test]
     fn while_let() {
-        let mut range = 0..10;
+        let slice: &[u8] = &[6, 7, 8, 9, 5, 4, 3, 2, 1];
+        let mut range = 0..slice.len();
 
         print!("Items: [");
-        while let Some(value) = range.next() {
+        while let Some(i) = range.next() {
+            print!("{}, ", slice[i]);
+        }
+        println!("]");
+    }
+
+    // enum Option {
+    //     None,
+    //     Some(i32),
+    // }
+
+    #[test]
+    fn while_let_iter() {
+        let slice: &[u8] = &[6, 7, 8, 9, 5, 4, 3, 2, 1];
+        let mut iter = slice.into_iter();
+
+        print!("Items: [");
+        while let Some(value) = iter.next() {
             print!("{}, ", value);
         }
         println!("]");
@@ -118,6 +125,32 @@ mod tests {
         println!("]");
     }
 
+    /// Switch like function in C
+    fn u8_to_text_pt_br(val: u8) -> String {
+        let pt_br_text;
+
+        match val {
+            // like switch
+            1 => pt_br_text = String::from("um"),
+            2 => pt_br_text = String::from("dois"),
+            3 => pt_br_text = String::from("três"),
+            _ => pt_br_text = String::from("outro"),
+        };
+
+        return pt_br_text;
+    }
+
+    /// Match function in Rust
+    fn u8_to_text_pt_br_rs(val: u8) -> String {
+        match val {
+            1 => String::from("um"),
+            2 => String::from("dois"),
+            3..7 => String::from("entre três e seis"),
+            7..=9 => String::from("entre sete e nove"),
+            10 | 100 => String::from("Dez ou cem"),
+            _ => String::from("outro"),
+        }
+    }
     #[test]
     fn match_simple() {
         assert_eq!("um", u8_to_text_pt_br(1));
@@ -149,12 +182,12 @@ mod tests {
     }
 
     #[test]
-    fn match_plus_ifelse() {
+    fn match_guards() {
         let x = 25;
 
         let result = match x {
-            m if m > 50 => "maior",
-            n if 0 <= n && n <= 30 => "entre",
+            m if m > 30 => "maior",
+            n if 20 <= n && n <= 30 => "entre",
             _ => "menor",
         };
 
@@ -230,33 +263,6 @@ mod tests {
             }
         }
         println!("Total {total}");
-    }
-
-    /// Switch like function in C
-    fn u8_to_text_pt_br(val: u8) -> String {
-        let pt_br_text;
-
-        match val {
-            // like switch
-            1 => pt_br_text = String::from("um"),
-            2 => pt_br_text = String::from("dois"),
-            3 => pt_br_text = String::from("três"),
-            _ => pt_br_text = String::from("outro"),
-        };
-
-        return pt_br_text;
-    }
-
-    /// Match function in Rust
-    fn u8_to_text_pt_br_rs(val: u8) -> String {
-        match val {
-            1 => String::from("um"),
-            2 => String::from("dois"),
-            3..7 => String::from("entre três e seis"),
-            7..=9 => String::from("entre sete e nove"),
-            10 | 100 => String::from("Dez ou cem"),
-            _ => String::from("outro"),
-        }
     }
 
     enum State {
