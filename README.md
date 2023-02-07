@@ -38,7 +38,7 @@ Introdução à linguagem de programação Rust
         * ~~for expressions~~
         * ~~continue~~
         * ~~loop expressions~~
-        * ~~Pattern Matching      
+        * ~~Pattern Matching~~      
         * ~~match expressions~~
         * ~~Destructuring Enums~~
         * ~~Destructuring Structs~~
