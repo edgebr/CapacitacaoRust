@@ -98,6 +98,7 @@ mod test {
         println!(
             "\nName: {} {}\nCPF: {}\nAge: {}\n",
             &p.first_name, p.last_name, p.cpf, p.age
+
         );
     }
 
@@ -112,6 +113,7 @@ mod test {
         pub fn e() -> f64 {
             std::f64::consts::E
             // 2.7182
+
         }
     }
 
@@ -161,6 +163,7 @@ mod test {
 
     #[derive(Debug, Default)]
     pub struct Rectangle {
+
         top_left: Point,
         bottom_right: Point,
     }
@@ -177,6 +180,7 @@ mod test {
         let rec = Rectangle {
             // top_left: Point { x: 0, y: 0 },
             top_left: Point::origin(),
+
             bottom_right: Point::new(10, 10),
         };
 
@@ -219,8 +223,8 @@ mod test {
         println!("Area rec5 = {}m²", rec5.area());
 
         let Rectangle { top_left, .. } = rec5;
-
         dbg!(top_left);
+
     }
 
     // #[derive(Debug)]
