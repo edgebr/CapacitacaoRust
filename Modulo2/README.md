@@ -62,3 +62,14 @@
 		* Closures
 		* impl Trait
 		* Trait Objects
+
+## Professores
+
+* `Aula 1`: Matheus T. dos Santos
+* `Aula 2`: Matheus T. dos Santos
+* `Aula 3`: Matheus T. dos Santos
+* `Aula 4`: Rodrigo Peixoto
+* `Aula 5`: Rodrigo Peixoto
+* `Aula 6`: Rodrigo Peixoto
+* `Aula 7`: Matheus T. dos Santos
+* `Aula 8`: Matheus T. dos Santos
