@@ -1,67 +1,53 @@
 ## Tópicos das Aulas
 
 * **Aula 1**
-	* Memory Management
-		* Manual Memory Management
-			* Free
-			* Destructor (fim de escopo)
-		* Garbage Collection
-			* Java
-			* Python
-		* Rust Memory Management
-			* Stack vs Heap
-				* Stack Memory (ex.: String)
-		* Comparation
-	* Variables
-		* static & const
+	* Static vs Const
+		* static variables
+		* const variables
+	* Memory Ownership
+		* Copy vs Move
+		* Copy types
+		* Move syntax
+			* Struct
+			* Enum
+			* Arrays and Tuples
+		* Chalenge
+		* Other Move Cases
 * **Aula 2**
-	* Ownership
-		* Move
-			* Sematics
-			* Moved String in Rust
-				* Double Frees in Modern C++
-		* Copying and Cloning
-		* Borrowing
-	* Lifetime
-		* Function Call
-		* Data Structures
+	* Borrowing
+		* 2 Borrow Rule
+		*
 * **Aula 3**
-	* Lifetime (Continuação)
-		* Function Call
-		* Data Structures
+	* Generics
+		* Generic Data Type
+			* Monomorphization
+		* Generic Methods
+* **Aula 4**
 	* Standard Library
 		* Option
 		* String
 		* Vec
-* **Aula 4**
-	* Standard Library
-		* Box
-			* Recursive Data Type
-			* Niche Optimization
-		* Rc
 * **Aula 5**
+	* Box
+		* Recursive Data Type
+	* Rc
+* **Aula 6**
 	* Trait
 		* Deriving Traits
 		* Default Methods
 		* Iterator
 		* From and Into
-* **Aula 6**
+		* Generic Trait Bounds
+* **Aula 7**
 	* Trait (Continuação)
 		* Read and Write
 		* Add, Mul, …
 		* Drop
 		* Defaut
-* **Aula 7**
-	* Generics
-		* Generic Data Type
-			* Monomorphization
-		* Generic Methods
-		* Trait Bounds
 * **Aula 8**
-	* Generics (Continuação)
-		* Closures
-		* impl Trait
-		* Trait Objects
+	* Lifetime (Continuação)
+		* Function Call
+		* Data Structures
 
 ## Professores
 
