@@ -61,13 +61,20 @@ mod static_vs_const {
         fn inside_fn() {
             const MATH_PI: f32 = 3.14159265359;
 
+            let math_pi = 3.14159265359;
+
             println!("π: {}, math π: {}", PI, MATH_PI);
         }
 
         struct Engineer;
 
         impl Engineer {
+            // static P: u8 = 3;
             const PI: u8 = 3;
+
+            fn new() -> Self {
+                todo!()
+            }
         }
 
         #[test]
@@ -76,17 +83,17 @@ mod static_vs_const {
         }
     }
 
-    /// Diferenças de `const` e `static`
+    /// # Diferenças de `const` e `static`
     ///
-    /// |                       | const | static |
-    /// |:----------------------|:-----:|:------:|
-    /// | Tipos Explicito       | Sempre              | Sempre |
-    /// | Mutabilidade          | Nunca               | `unsafe` |
-    /// | Endereço fixo         | ❌                  | ✅ |
-    /// | É copiado em cada uso | ✅                  | ❌ |
-    /// | Tempo de execução     | Rápido              | Lento |
+    /// |                       | const               | static                   |
+    /// |:----------------------|:-------------------:|:------------------------:|
+    /// | Tipos Explicito       | Sempre              | Sempre                   |
+    /// | Mutabilidade          | Nunca               | `unsafe`                 |
+    /// | Endereço fixo         | ❌                  | ✅                      |
+    /// | É copiado em cada uso | ✅                  | ❌                      |
+    /// | Tempo de execução     | Rápido              | Lento                    |
     /// | Semelhança com C      | `#define VAR 0`     | `const uint8_t var = 0;` |
-    /// | Inicialização         | Sempre na definição | Sempre na definição |
+    /// | Inicialização         | Sempre na definição | Sempre na definição      |
     mod const_vs_static {
         #[allow(unused)]
         const CONST: [u8; 1_000_000] = [0u8; 1_000_000];
@@ -97,7 +104,7 @@ mod static_vs_const {
 
 mod memory_ownership {
     #[test]
-    fn one_owners() {
+    fn one_owner() {
         /* 's1' é dona do slot de memória que guarda uma String. */
         let s1 = String::from("Hello, World!");
         /* Agora 's2' possui a "propriedade" do slot de memória que pertencia a 's2' */
@@ -114,7 +121,7 @@ mod memory_ownership {
 
     #[test]
     fn two_owner() {
-        /* 'd1' é dona de um slot que contém o valor 10 */
+        /* 'd1' é dona de um slot que contém o valor 7 */
         let d1 = 7;
         /* Neste ponto, 'd2' não assume a "propriedade" do slot de 'd1', ao invés disso, o valor é
            copiado. Isso ocorre com todos os tipos primitivos (e referências também).
@@ -157,7 +164,7 @@ mod memory_ownership {
     fn slice_are_also_refs() {
         let v1 = [7; 10];
 
-        let r1 = &v1;
+        let r1 = &v1[..];
         let r2 = r1;
 
         println!("r1: {r1:?}");
@@ -187,11 +194,16 @@ mod memory_ownership {
             let t2 = tuples;
             println!("tuples: {tuples:?}, t2: {t2:?}");
 
-            let arrays = [7; 10];
+            let arrays = [7i32; 10];
             let a2 = arrays;
             println!("arrays: {arrays:?}, a2: {a2:?}");
 
-            let functions = |x| println!("Greetings: {x:?}");
+            fn callback(x: &str) {
+                println!("Greetings: {x:?}");
+            }
+
+            // let functions = |x| println!("Greetings: {x:?}");
+            let functions = callback;
             let f2 = functions;
             functions("Matheus");
             f2("Tenório");
@@ -254,7 +266,7 @@ mod memory_ownership {
 
         // !!! RECAP !!!
         // Tipos compostos só podem ser copiados se seus tipos puderem ser copiados. Se pelo menos
-        // um dos tipos (no caso do array o tipo principal) não puder ser movido, então a tupla
+        // um dos tipos (no caso do array o tipo principal) não puder ser copiado, então a tupla
         // (ou o array) não poderá ser copiado, será movido.
 
         #[test]
@@ -273,11 +285,11 @@ mod memory_ownership {
             fn add_mister(p: Person) -> String {
                 let res = format!("Mr. {}", p.name);
 
-                return res;
+                res
             }
 
             let vip = Person::new("Marcos");
-            let vip_name = add_mister(vip);
+            let mut vip_name = add_mister(vip);
             println!("Hello again \"{vip_name}\"!")
         }
 
@@ -288,21 +300,24 @@ mod memory_ownership {
                 println!("Hello \"{}\"!", p.name);
             }
 
-            fn add_mister(p: Person) -> String {
+            fn add_mister(p: &Person) -> String {
                 format!("Mr. {}", p.name)
             }
 
             fn add_mister2(mut p: Person) -> Person {
-                todo!()
+                p.name = add_mister(&p);
+                p
             }
 
             let p1 = Person::new("Lucas");
-            greetings(add_mister2(p1));
+            let p2 = add_mister2(p1);
+            greetings(p2);
         }
 
         use person::Person;
 
         mod person {
+            #[derive(Clone)]
             pub struct Person {
                 pub name: String,
             }
@@ -318,10 +333,10 @@ mod memory_ownership {
         fn other_move_cases() {
             let v1 = [MoveEnum::Var1, MoveEnum::Var2];
 
-            for v in v1 {
+            for v in v1.iter() {
                 println!("v: {v:?}");
             }
-            // println!("v1: {v1:?}");
+            println!("v1: {v1:?}");
 
             let opt = Some(MoveEnum::Var1);
             match opt {
@@ -330,54 +345,14 @@ mod memory_ownership {
                 None => println!("No value"),
             }
 
-            // if let Some(v) = opt {
-            //     println!("Other variant: {:?}", v);
-            // }
+            if let Some(v) = opt.as_ref() {
+                println!("Other variant: {:?}", v);
+            }
 
             // if let Some(MoveEnum::Var2) = opt {
             //     println!("It's Var2");
             // }
         }
-    }
-}
-
-mod trivia {
-    use std::time::Duration;
-
-    #[test]
-    #[allow(unreachable_code)]
-    #[allow(unused_variables)]
-    fn never_type() {
-        let a: ! = loop {};
-        let p: ! = panic!();
-    }
-
-    #[allow(unused)]
-    fn blink() -> ! {
-        let val = false;
-        loop {
-            let val = !val;
-
-            set_led(val);
-            delay(500);
-        }
-    }
-
-    fn set_led(state: bool) {
-        println!("Led {}", if state { "On" } else { "Off" });
-    }
-
-    #[inline(always)]
-    fn delay(ms: u64) {
-        std::thread::sleep(Duration::from_millis(ms));
-    }
-
-    #[test]
-    #[allow(unused)]
-    fn enum_zero_variant() {
-        enum ZeroVariant {}
-
-        // let no_variant = ???;
     }
 }
 

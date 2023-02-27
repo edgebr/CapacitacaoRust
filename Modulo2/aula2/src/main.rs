@@ -1,4 +1,3 @@
-/// TODO
 mod borrow_checker {}
 
 // mod move_string {
@@ -251,6 +250,44 @@ mod borrow_checker {}
 //     }
 // }
 
-fn main() {
-    println!("Hello, world!");
+mod trivia {
+    use std::time::Duration;
+
+    #[test]
+    #[allow(unreachable_code)]
+    #[allow(unused_variables)]
+    fn never_type() {
+        let a: ! = loop {};
+        let p: ! = panic!();
+    }
+
+    #[allow(unused)]
+    fn blink() -> ! {
+        let val = false;
+        loop {
+            let val = !val;
+
+            set_led(val);
+            delay(500);
+        }
+    }
+
+    fn set_led(state: bool) {
+        println!("Led {}", if state { "On" } else { "Off" });
+    }
+
+    #[inline(always)]
+    fn delay(ms: u64) {
+        std::thread::sleep(Duration::from_millis(ms));
+    }
+
+    #[test]
+    #[allow(unused)]
+    fn enum_zero_variant() {
+        enum ZeroVariant {}
+
+        // let no_variant = ???;
+    }
 }
+
+fn main() {}
