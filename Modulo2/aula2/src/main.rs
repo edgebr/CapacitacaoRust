@@ -200,23 +200,23 @@ mod borrow_checker {
 
         #[test]
         fn valid_func_mut_ref() {
-            // fn set_to_marcos(p2: &mut Person, old_name: &str) {
-            //     p2.set_name("Marcos");
-            //     println!("Changing from {old_name} to {}", p2.get_name());
-            // }
-            //
-            // let mut p = Person::new("Matheus");
-            //
-            // /* 1st Solution */
-            // let name = p.get_name().to_string();
-            // set_to_marcos(&mut p, &name);
-            //
-            // /* 2nd Solution */
-            // set_to_marcos(&mut p, &(p.get_name().to_string()));
+            fn set_to_marcos(p2: &mut Person, old_name: &str) {
+                p2.set_name("Marcos");
+                println!("Changing from {old_name} to {}", p2.get_name());
+            }
+
+            let mut p = Person::new("Matheus");
+
+            /* 1st Solution */
+            let name = p.get_name().to_string();
+            set_to_marcos(&mut p, &name);
+
+            /* 2nd Solution */
+            // set_to_marcos(&mut p, &p.get_name().to_string());
         }
 
         #[test]
-        fn detailed_valid_func_mut_ref() {
+        fn detailed_invalid_func_mut_ref() {
             // fn set_to_marcos(p2: &mut Person, old_name: &str) {
             //     p2.set_name("Marcos");
             //     println!("Changing from {old_name} to {}", p2.get_name());
@@ -231,7 +231,7 @@ mod borrow_checker {
             // set_to_marcos(&mut p, &name);
             //
             // /* 2nd Solution */
-            // // set_to_marcos(&mut p, &(p.get_name().to_string()));
+            // // set_to_marcos(&mut p, &p.get_name().to_string());
             // //                        ------------
             // //                        |
             // //                        Person::get_name(&p) -> &str
@@ -241,6 +241,29 @@ mod borrow_checker {
             // //                                                                      ------
             // //                                                                      |
             // //                                                                      &String -> &str
+        }
+
+        #[test]
+        fn invalid_move_after_imut_borrow() {
+            // let p = Person::new("Matheus");
+            // let p2 = &p;
+            //
+            // let p3 = p;
+            //
+            // let name = p2.get_name();
+        }
+
+        #[test]
+        fn valid_move_after_imut_borrow() {
+            let p = Person::new("Matheus");
+
+            let name = p.get_name();
+            let name = Person::get_name(&p);
+
+            let p3 = p;
+
+            let name = p3.get_name();
+            let name = Person::get_name(&p3);
         }
     }
 
@@ -338,10 +361,12 @@ mod borrow_checker {
         }
     }
 
-    // !!! RECAP !!!
-    // 1. Inifinitas referências IMUTÁVEIS (&) ao mesmo tempo.
-    // 2. EXTATAMENTE 1 referência MUTÁVEL (&mut).
-
+    /// !!! RECAP !!!
+    ///
+    /// ![Move-Copy-Borrow](https://rufflewind.com/img/rust-move-copy-borrow.png)
+    ///
+    /// 1. Inifinitas referências IMUTÁVEIS (&) ao mesmo tempo.
+    /// 2. EXTATAMENTE 1 referência MUTÁVEL (&mut).
     mod iterator_invalidation {
         use crate::borrow_checker::person::Person;
         use std::time::Duration;
