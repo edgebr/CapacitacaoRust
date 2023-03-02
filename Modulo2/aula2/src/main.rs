@@ -141,6 +141,7 @@ mod borrow_checker {
 
             p.set_name("Marcos");
             Person::set_name(&mut p, "Marcos");
+            Person::set_name(&mut p, "Marcos");
         }
 
         #[test]
@@ -366,7 +367,7 @@ mod borrow_checker {
     /// ![Move-Copy-Borrow](https://rufflewind.com/img/rust-move-copy-borrow.png)
     ///
     /// 1. Inifinitas referências IMUTÁVEIS (&) ao mesmo tempo.
-    /// 2. EXTATAMENTE 1 referência MUTÁVEL (&mut).
+    /// 2. EXTATAMENTE 1 referência MUTÁVEL (&mut) ao mesmo tempo.
     mod iterator_invalidation {
         use crate::borrow_checker::person::Person;
         use std::time::Duration;
@@ -534,46 +535,6 @@ mod borrow_checker {
                 people.push(PersonAgeGroup::Child { age });
             }
         }
-    }
-}
-
-mod trivia {
-    use std::time::Duration;
-
-    #[test]
-    #[allow(unreachable_code)]
-    #[allow(unused_variables)]
-    fn never_type() {
-        let a: ! = loop {};
-        let p: ! = panic!();
-    }
-
-    #[allow(unused)]
-    fn blink() -> ! {
-        let val = false;
-        loop {
-            let val = !val;
-
-            set_led(val);
-            delay(500);
-        }
-    }
-
-    fn set_led(state: bool) {
-        println!("Led {}", if state { "On" } else { "Off" });
-    }
-
-    #[inline(always)]
-    fn delay(ms: u64) {
-        std::thread::sleep(Duration::from_millis(ms));
-    }
-
-    #[test]
-    #[allow(unused)]
-    fn enum_zero_variant() {
-        enum ZeroVariant {}
-
-        // let no_variant = ???;
     }
 }
 
