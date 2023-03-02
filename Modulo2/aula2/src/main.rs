@@ -1,5 +1,3 @@
-#![feature(never_type)]
-
 /// # Regras do Borrow Checker
 ///
 /// 1. É possivel ter inifinitas referências **IMUTÁVEIS** (`&`) ao mesmo tempo.
