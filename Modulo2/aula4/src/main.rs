@@ -1,5 +1,3 @@
-#![feature(never_type)]
-
 /// !!! RECAP !!!
 ///
 /// ![Move-Copy-Borrow](https://rufflewind.com/img/rust-move-copy-borrow.png)
@@ -224,7 +222,13 @@ mod generics {
         }
 
         fn add_valor_char(array: &mut [char], pos: usize, valor: char) -> bool {
-            todo!()
+            if pos >= array.len() {
+                return false;
+            }
+
+            array[pos] = valor;
+
+            true
         }
 
         #[test]
@@ -240,14 +244,16 @@ mod generics {
     }
 
     mod with_generics {
-        fn add_valor<T>(array: &mut [T], pos: usize, valor: T) -> bool {
+        use std::fmt::Debug;
+
+        fn add_valor<T: Copy>(array: &mut [T], pos: usize, valor: T) -> T {
             if pos >= array.len() {
-                return false;
+                return valor;
             }
 
             array[pos] = valor;
 
-            true
+            array[0]
         }
 
         #[test]
@@ -257,7 +263,7 @@ mod generics {
             println!("add_valor_i32 result: {result}, number_list: {number_list:?}");
 
             let mut char_list = ['\0'; 5];
-            let result = add_valor(&mut char_list, 0, 'M');
+            let result = add_valor(&mut char_list, 10, 'M');
             println!("add_valor_char result: {result}, char_list: {char_list:?}");
         }
     }
@@ -271,9 +277,9 @@ mod generics {
 
         #[test]
         fn generic_struct_usage() {
-            let p1 = Point { x: 5, y: 5 };
-            let p2 = Point { x: 1.0, y: 4.0 };
-            let p3 = Point { x: 'a', y: 'b' };
+            let p1: Point<i32> = Point { x: 5, y: 5 };
+            let p2: Point<f32> = Point { x: 1.0f32, y: 4.0 };
+            let p3: Point<char> = Point { x: 'a', y: 'b' };
 
             println!("p1: {p1:?}");
             println!("p2: {p2:?}");
@@ -282,8 +288,11 @@ mod generics {
 
         #[test]
         fn invalid_generic_struct_two_types() {
-            // let p1 = Point { x: 5, y: 5.0 };
-            // println!("p1: {p1:?}");
+            let p1 = Point {
+                x: 5,
+                y: 5.0 as i32,
+            };
+            println!("p1: {p1:?}");
         }
 
         #[test]
@@ -294,7 +303,7 @@ mod generics {
                 y: U,
             }
 
-            let p1 = Point2 { x: 5, y: 5.0 };
+            let p1: Point2<i32, f64> = Point2 { x: 5, y: 5.0 };
             println!("p1: {p1:?}");
         }
 
@@ -346,13 +355,21 @@ mod generics {
             }
 
             let p1 = Point::<i32, f32> { x: 5, y: 5.0 };
+            let p1: Point<i32, f32> = Point { x: 5, y: 5.0 };
             println!("p1: {p1:?}");
         }
 
         #[test]
         fn real_case() {
-            let size_of_char = std::mem::size_of::<char>();
+            struct Hello {
+                a: i32,
+                b: u16,
+            }
+
+            let size_of_char = std::mem::size_of::<Hello>();
+            let align = std::mem::align_of::<Hello>();
             dbg!(size_of_char);
+            dbg!(align);
 
             let parse_u32 = "2023".parse::<u32>().unwrap();
             dbg!(parse_u32);
@@ -399,14 +416,15 @@ mod generics {
 
         #[test]
         fn invalid_change_generic_type() {
-            // let mut nullable_f32 = Nullable::NonNull(3.0);
+            let mut nullable_f32: Nullable<f32> = Nullable::NonNull(3.0);
             // nullable_f32 = Nullable::NonNull('m');
+            // nullable_f32 = Nullable::<char>::Null;
         }
 
         #[test]
         fn generic_enum_usage() {
             let nullable_f32 = Nullable::NonNull(3.0);
-            // let nullable_f32 = Nullable::Null;
+            // let nullable_f32: Nullable<f32> = Nullable::Null;
 
             if let Nullable::NonNull(v) = &nullable_f32 {
                 println!("nullable_f32 as a value: {v}");
@@ -505,25 +523,26 @@ mod generics {
                 Self { x, y }
             }
 
-            pub fn dot(&self, rhs: &Point<i32>) -> i32 {
-                self.x * rhs.x + self.y * rhs.y
+            pub fn dot(&self, rhs: &Point<f32>) -> i32 {
+                self.x * rhs.x as i32 + self.y * rhs.y as i32
             }
         }
 
         #[test]
         fn test_point_i32() {
             let p1 = Point::<i32>::new(1, 2);
-            let p2 = Point::<i32>::new(2, 3);
+            let p2 = Point::new_f32(2.0, 3.0);
 
             let dot = p1.dot(&p2);
             dbg!(dot);
         }
 
         impl Point<f32> {
-            pub fn new(x: f32, y: f32) -> Self {
+            pub fn new_f32(x: f32, y: f32) -> Self {
                 Self { x, y }
             }
 
+            // TODO Porque deu certo?
             pub fn dot(&self, rhs: &Point<f32>) -> f32 {
                 self.x * rhs.x + self.y * rhs.y
             }
@@ -535,7 +554,7 @@ mod generics {
 
         #[test]
         fn test_point_f32() {
-            let p1 = Point::<f32>::new(1.0, 2.0);
+            let p1 = Point::new_f32(1.0, 2.0);
             // let p1 = Point::<i32>::new(1, 2);
 
             let magnitude = p1.magnitude();
@@ -579,271 +598,6 @@ mod generics {
             let magnitude = p1.magnitude();
             dbg!(magnitude);
         }
-    }
-
-    mod const_generics {
-        #[derive(Debug)]
-        struct PersonRef<'a> {
-            name: String,
-            friends: &'a [String],
-        }
-
-        impl<'a> PersonRef<'a> {
-            pub fn new(name: &str, friends: &'a [String]) -> Self {
-                Self {
-                    name: name.to_string(),
-                    friends,
-                }
-            }
-        }
-
-        #[test]
-        fn test_person_ref() {
-            let friends = ["Marcos".to_string(), "Lucas".to_string()];
-            let person = PersonRef::new("Matheus", &friends);
-
-            dbg!(person);
-        }
-
-        #[derive(Debug)]
-        struct Person<const N: usize> {
-            name: String,
-            friends: [String; N],
-        }
-
-        impl<const N: usize> Person<N> {
-            pub fn new(name: &str, friends: [String; N]) -> Self {
-                Self {
-                    name: name.to_string(),
-                    friends,
-                }
-            }
-        }
-
-        #[test]
-        fn test_person_const_generic() {
-            let person = Person::new("Matheus", ["Marcos".to_string(), "Lucas".to_string()]);
-            dbg!(person);
-
-            let person = Person::new(
-                "Matheus",
-                [
-                    "Marcos".to_string(),
-                    "Lucas".to_string(),
-                    "João".to_string(),
-                    "Pedro".to_string(),
-                    "Paulo".to_string(),
-                ],
-            );
-            dbg!(person);
-        }
-
-        impl Person<0> {
-            pub fn print_friends(&self) {
-                println!("No friends at all");
-            }
-        }
-
-        #[test]
-        fn test_no_friends() {
-            let person = Person::new("Matheus", []);
-
-            person.print_friends();
-            dbg!(person);
-        }
-    }
-
-    mod generic_and_lifetimes {
-        use std::fmt::Debug;
-
-        #[derive(Debug)]
-        struct PersonRef<'a> {
-            name: String,
-            friends: &'a [String],
-        }
-
-        impl<'a> PersonRef<'a> {
-            pub fn new(name: &str, friends: &'a [String]) -> Self {
-                Self {
-                    name: name.to_string(),
-                    friends,
-                }
-            }
-        }
-
-        impl PersonRef<'static> {
-            pub fn static_friends(&self) -> &'static [String] {
-                &self.friends
-            }
-        }
-
-        fn print_slices<'a, T: Debug + PartialEq>(first: &'a [T], second: &'a [T]) {
-            print!("[");
-            for el in first {
-                print!("{el:?},");
-            }
-            for el in second {
-                print!(
-                    "{el:?}{}",
-                    if el == second.last().unwrap() {
-                        ""
-                    } else {
-                        ","
-                    }
-                );
-            }
-            println!("]");
-        }
-
-        // fn invalid_print_slices<T: Debug, 'a>(first: &'a [T], second: &'a [T]) {
-        //     println!("[");
-        //     for el in first {
-        //         print!("{el:?},");
-        //     }
-        //     for el in second {
-        //         print!("{el:?},");
-        //     }
-        //     println!("]");
-        // }
-
-        #[test]
-        fn test_print_slices() {
-            let l1 = [1, 2, 3];
-            let l2 = [2, 3];
-
-            print_slices(&l1, &l2);
-        }
-
-        fn cat_slices<'a, const N: usize>(first: &'a [i32], second: &'a [i32]) -> Vec<i32> {
-            let mut first_vec = first.to_vec();
-            first_vec.extend(second.iter());
-            first_vec
-        }
-
-        // fn invalid_cat_slices<const N: usize, 'a>(first: &'a [i32], second: &'a [i32]) -> Vec<i32> {
-        //     let mut first_vec = first.to_vec();
-        //     first_vec.extend(second.iter());
-        //     first_vec
-        // }
-
-        #[test]
-        fn test_cat_slices() {
-            let l1 = [1, 2, 3];
-            let l2 = [2, 3];
-
-            let l3 = cat_slices::<5>(&l1, &l2);
-            dbg!(l3);
-
-            // let l3 = cat_slices::<l1.len() + l2.len()>(&l1, &l2);
-
-            // const SIZE: usize = <[i32]>::len(&l1);
-            // let l3 = cat_slices::<SIZE>(&l1, &l2);
-            // dbg!(l3);
-        }
-    }
-
-    mod phantom_types {
-        use std::marker::PhantomData;
-
-        struct Low;
-
-        struct Medium;
-
-        struct High;
-
-        struct Heater<S> {
-            _marker: std::marker::PhantomData<S>,
-        }
-
-        impl Heater<Low> {
-            pub fn add_water(self) -> Heater<Medium> {
-                Heater {
-                    _marker: PhantomData,
-                }
-            }
-        }
-
-        impl Heater<Medium> {
-            pub fn drain(self) -> Heater<Low> {
-                Heater {
-                    _marker: PhantomData,
-                }
-            }
-
-            pub fn fill(self) -> Heater<High> {
-                Heater {
-                    _marker: PhantomData,
-                }
-            }
-        }
-
-        impl Heater<High> {
-            pub fn remove_water(self) -> Heater<Medium> {
-                Heater {
-                    _marker: PhantomData,
-                }
-            }
-        }
-
-        fn run_heater<S>(h: &mut Heater<S>) {
-            todo!()
-        }
-
-        fn refill_heater(h: &mut Heater<Low>) {
-            todo!()
-        }
-
-        /// TODO: Após Traits
-        mod driver {}
-    }
-
-    /// TODO: Após Traits
-    mod bounds {}
-
-    /// TODO: Após Traits
-    mod multiple_bounds {}
-
-    /// TODO: Após Traits
-    mod where_clause {}
-}
-
-mod trivia {
-    use std::time::Duration;
-
-    #[test]
-    #[allow(unreachable_code)]
-    #[allow(unused_variables)]
-    fn never_type() {
-        let a: ! = loop {};
-        let p: ! = panic!();
-    }
-
-    #[allow(unused)]
-    fn blink() -> ! {
-        let val = false;
-        loop {
-            let val = !val;
-
-            set_led(val);
-            delay(500);
-        }
-    }
-
-    fn set_led(state: bool) {
-        println!("Led {}", if state { "On" } else { "Off" });
-    }
-
-    #[inline(always)]
-    fn delay(ms: u64) {
-        std::thread::sleep(Duration::from_millis(ms));
-    }
-
-    #[test]
-    #[allow(unused)]
-    fn enum_zero_variant() {
-        enum ZeroVariant {}
-
-        // let no_variant = ???;
     }
 }
 
