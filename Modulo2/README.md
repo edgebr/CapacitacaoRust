@@ -1,60 +1,75 @@
 ## Tópicos das Aulas
 
 * **Aula 1**
-	* Static vs Const
-		* static variables
-		* const variables
-	* Memory Ownership
-		* Copy vs Move
-		* Copy types
-		* Move syntax
-			* Struct
-			* Enum
-			* Arrays and Tuples
-		* Chalenge
-		* Other Move Cases
+	* ~~Static vs Const~~
+		* ~~static variables~~
+		* ~~const variables~~
+	* ~~Memory Ownership~~
+		* ~~Copy vs Move~~
+		* ~~Copy types~~
+		* ~~Move syntax~~
+			* ~~Struct~~
+			* ~~Enum~~
+			* ~~Arrays and Tuples~~
+		* ~~Chalenge~~
+		* ~~Other Move Cases~~
 * **Aula 2**
-	* Borrowing
-		* 2 Borrow Rule
-		*
+	* ~~Borrowing~~
+		* ~~2 Borrow Rule~~
+		* ~~Borrow Method Call~~
+		* ~~Borrow Check Advantages~~
+		* ~~Iterator Invalidation~~
 * **Aula 3**
-	* Generics
-		* Generic Data Type
-			* Monomorphization
-		* Generic Methods
+	* ~~Lifetime~~
+		* ~~Function Call~~
+		* ~~Data Structures~~
 * **Aula 4**
+	* ~~Borrowing (Continuação)~~
+		* ~~Iterator Invalidation~~
+	* ~~Generics~~
+		* ~~Example without Generics~~
+		* ~~Example with Generics~~
+		* ~~Generics in Struct~~
+		* ~~Turbo Fish~~
+		* ~~Generics in Enum~~
+		* ~~Performance~~
+		* ~~Methods Fixed Type~~
+		* ~~Methods Generic Type~~
+* **Aula 5**
+	* Generics
+		* Const Generics
+		* Generics and Lifetimes
+		* Phatom types
+			* State with Structs
 	* Standard Library
 		* Option
 		* String
 		* Vec
-* **Aula 5**
-	* Box
-		* Recursive Data Type
-	* Rc
 * **Aula 6**
+	* Standard Library
+		* Box
+		* Recursive Data Type
+			* Rc
+* **Aula 7**
 	* Trait
 		* Deriving Traits
 		* Default Methods
 		* Iterator
 		* From and Into
 		* Generic Trait Bounds
-* **Aula 7**
+* **Aula 8**
 	* Trait (Continuação)
 		* Read and Write
 		* Add, Mul, …
 		* Drop
 		* Defaut
-* **Aula 8**
-	* Lifetime (Continuação)
-		* Function Call
-		* Data Structures
 
 ## Professores
 
-* `Aula 1`: Matheus T. dos Santos
-* `Aula 2`: Matheus T. dos Santos
-* `Aula 3`: Matheus T. dos Santos
-* `Aula 4`: Rodrigo Peixoto
+* `Aula 1`: ~~Matheus T. dos Santos~~
+* `Aula 2`: ~~Matheus T. dos Santos~~
+* `Aula 3`: ~~Rodrigo Peixoto~~
+* `Aula 4`: ~~Matheus T. dos Santos~~
 * `Aula 5`: Rodrigo Peixoto
 * `Aula 6`: Rodrigo Peixoto
 * `Aula 7`: Matheus T. dos Santos
