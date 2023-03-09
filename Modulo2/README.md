@@ -36,17 +36,17 @@
 		* ~~Methods Fixed Type~~
 		* ~~Methods Generic Type~~
 * **Aula 5**
-	* Generics
-		* Const Generics
-		* Generics and Lifetimes
-		* Phatom types
-			* State with Structs
-	* Standard Library
-		* Option
-		* String
-		* Vec
+	* ~~Generics~~
+		* ~~Const Generics~~
+		* ~~Generics and Lifetimes~~
+		* ~~Phatom types
+			* State with Structs~~
+	* ~~Standard Library~~
+		* ~~Vec~~
+		* ~~String~~
 * **Aula 6**
 	* Standard Library
+		* Option
 		* Box
 		* Recursive Data Type
 			* Rc
@@ -70,7 +70,7 @@
 * `Aula 2`: ~~Matheus T. dos Santos~~
 * `Aula 3`: ~~Rodrigo Peixoto~~
 * `Aula 4`: ~~Matheus T. dos Santos~~
-* `Aula 5`: Rodrigo Peixoto
+* `Aula 5`: ~~Matheus T. dos Santos e Rodrigo Peixoto~~
 * `Aula 6`: Rodrigo Peixoto
 * `Aula 7`: Matheus T. dos Santos
 * `Aula 8`: Matheus T. dos Santos
