@@ -43,7 +43,8 @@ mod generics {
 
         #[test]
         fn test_person_const_generic() {
-            let person = Person::new("Matheus", ["Marcos".to_string(), "Lucas".to_string()]);
+            let friends = ["Marcos".to_string(), "Lucas".to_string()];
+            let person = Person::new("Matheus", friends);
             dbg!(person);
 
             let person = Person::new(
@@ -71,6 +72,26 @@ mod generics {
 
             person.print_friends();
             dbg!(person);
+        }
+
+        #[test]
+        fn same_type() {
+            let friends = ["Marcos".to_string(), "Lucas".to_string()];
+            let person = Person::new("Matheus", friends);
+            dbg!(person);
+
+            let person2 = Person::new(
+                "Matheus",
+                [
+                    "Marcos".to_string(),
+                    "Lucas".to_string(),
+                    "João".to_string(),
+                    "Pedro".to_string(),
+                    "Paulo".to_string(),
+                ],
+            );
+
+            // let list = [person, person2];
         }
     }
 
@@ -173,7 +194,7 @@ mod generics {
         struct High;
 
         struct Heater<S> {
-            _marker: std::marker::PhantomData<S>,
+            _marker: PhantomData<S>,
         }
 
         impl Heater<Low> {
