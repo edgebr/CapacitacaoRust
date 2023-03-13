@@ -1,75 +1,9 @@
-use std::collections::HashMap;
-use std::path::{Path, PathBuf};
-use std::str::FromStr;
-use std::time::Duration;
+mod storage;
 
 mod rust_interfaces {
-    use super::*;
-
     mod no_trait {
-        use super::*;
-
-        struct SDCard {
-            root: PathBuf,
-            buffer: HashMap<PathBuf, String>,
-        }
-
-        impl SDCard {
-            pub fn new(root: &'static str) -> Self {
-                Self {
-                    root: PathBuf::from_str(root).unwrap_or_default(),
-                    buffer: HashMap::new(),
-                }
-            }
-
-            pub fn write(&mut self, path: &Path, data: &str) {
-                let mut path_buf = self.root.clone();
-                path_buf.push(path);
-                self.buffer.insert(path_buf, data.to_owned());
-            }
-
-            pub fn read(&self, path: &Path) -> Option<String> {
-                let mut path_buf = self.root.clone();
-                path_buf.push(path);
-
-                if !self.buffer.contains_key(&path_buf) {
-                    return None;
-                }
-
-                Some(self.buffer[&path_buf].to_owned())
-            }
-        }
-
-        struct SPIFlash {
-            speed: usize,
-            buffer: HashMap<PathBuf, String>,
-        }
-
-        impl SPIFlash {
-            pub fn new(speed: usize) -> Self {
-                Self {
-                    speed,
-                    buffer: HashMap::new(),
-                }
-            }
-
-            pub fn write(&mut self, path: &Path, data: &str) {
-                let delay = (10.0 / self.speed as f32) as u64;
-                std::thread::sleep(Duration::from_secs(delay));
-                self.buffer.insert(PathBuf::from(path), data.to_owned());
-            }
-
-            pub fn read(&self, path: &Path) -> Option<String> {
-                if !self.buffer.contains_key(path) {
-                    return None;
-                }
-
-                let delay = (10.0 / self.speed as f32) as u64;
-                std::thread::sleep(Duration::from_secs(delay));
-
-                Some(self.buffer[path].to_owned())
-            }
-        }
+        use crate::storage::{SDCard, SPIFlash};
+        use std::path::Path;
 
         fn sd_card_routine(driver: &mut SDCard) -> bool {
             let file_name = Path::new("hello.txt");
@@ -108,89 +42,9 @@ mod rust_interfaces {
     }
 
     mod with_trait {
-        use super::*;
-
-        pub trait Storage {
-            fn write(&mut self, path: &Path, data: &str);
-            fn read(&self, path: &Path) -> Option<String>;
-        }
-
-        mod sd_card {
-            use super::*;
-
-            pub struct SDCard {
-                root: PathBuf,
-                buffer: HashMap<PathBuf, String>,
-            }
-
-            impl SDCard {
-                pub fn new(root: &'static str) -> Self {
-                    Self {
-                        root: PathBuf::from(root),
-                        buffer: HashMap::new(),
-                    }
-                }
-            }
-
-            impl Storage for SDCard {
-                fn write(&mut self, path: &Path, data: &str) {
-                    let mut path_buf = self.root.clone();
-                    path_buf.push(path);
-                    self.buffer.insert(path_buf, data.to_owned());
-                }
-
-                fn read(&self, path: &Path) -> Option<String> {
-                    let mut path_buf = self.root.clone();
-                    path_buf.push(path);
-
-                    if !self.buffer.contains_key(&path_buf) {
-                        return None;
-                    }
-
-                    Some(self.buffer[&path_buf].to_owned())
-                }
-            }
-        }
-
-        mod spi_flash {
-            use super::*;
-
-            pub struct SPIFlash {
-                speed: usize,
-                buffer: HashMap<PathBuf, String>,
-            }
-
-            impl SPIFlash {
-                pub fn new(speed: usize) -> Self {
-                    Self {
-                        speed,
-                        buffer: HashMap::new(),
-                    }
-                }
-            }
-
-            impl Storage for SPIFlash {
-                fn write(&mut self, path: &Path, data: &str) {
-                    let delay = (10.0 / self.speed as f32) as u64;
-                    std::thread::sleep(Duration::from_secs(delay));
-                    self.buffer.insert(PathBuf::from(path), data.to_owned());
-                }
-
-                fn read(&self, path: &Path) -> Option<String> {
-                    if !self.buffer.contains_key(path) {
-                        return None;
-                    }
-
-                    let delay = (10.0 / self.speed as f32) as u64;
-                    std::thread::sleep(Duration::from_secs(delay));
-
-                    Some(self.buffer[path].to_owned())
-                }
-            }
-        }
-
-        use sd_card::SDCard;
-        use spi_flash::SPIFlash;
+        use crate::storage::v2::Storage;
+        use crate::storage::{SDCard, SPIFlash};
+        use std::path::Path;
 
         fn driver_test_routine(driver: &mut impl Storage) -> bool {
             let file_name = Path::new("hello.txt");
@@ -241,190 +95,17 @@ mod rust_interfaces {
 }
 
 mod generic_bounds {
-    use super::*;
-
-    pub trait Storage {
-        fn write(&mut self, path: &Path, data: &str);
-        fn read(&self, path: &Path) -> Option<String>;
-        fn append(&mut self, path: &Path, data: &str);
-    }
-
-    mod sd_card {
-        use super::*;
-
-        pub struct SDCard {
-            root: PathBuf,
-            buffer: HashMap<PathBuf, String>,
-        }
-
-        impl SDCard {
-            pub fn new(root: &'static str) -> Self {
-                Self {
-                    root: PathBuf::from(root),
-                    buffer: HashMap::new(),
-                }
-            }
-        }
-
-        impl Storage for SDCard {
-            fn write(&mut self, path: &Path, data: &str) {
-                let mut path_buf = self.root.clone();
-                path_buf.push(path);
-                self.buffer.insert(path_buf, data.to_owned());
-            }
-
-            fn read(&self, path: &Path) -> Option<String> {
-                let mut path_buf = self.root.clone();
-                path_buf.push(path);
-
-                if !self.buffer.contains_key(&path_buf) {
-                    return None;
-                }
-
-                Some(self.buffer[&path_buf].to_owned())
-            }
-
-            fn append(&mut self, path: &Path, data: &str) {
-                todo!()
-            }
-        }
-    }
-
-    mod spi_flash {
-        use super::*;
-
-        pub struct SPIFlash {
-            speed: usize,
-            buffer: HashMap<PathBuf, String>,
-        }
-
-        impl SPIFlash {
-            pub fn new(speed: usize) -> Self {
-                Self {
-                    speed,
-                    buffer: HashMap::new(),
-                }
-            }
-
-            pub fn speed(&self) -> usize {
-                self.speed
-            }
-        }
-
-        impl Storage for SPIFlash {
-            fn write(&mut self, path: &Path, data: &str) {
-                let delay = (10.0 / self.speed as f32) as u64;
-                std::thread::sleep(Duration::from_secs(delay));
-                self.buffer.insert(PathBuf::from(path), data.to_owned());
-            }
-
-            fn read(&self, path: &Path) -> Option<String> {
-                if !self.buffer.contains_key(path) {
-                    return None;
-                }
-
-                let delay = (10.0 / self.speed as f32) as u64;
-                std::thread::sleep(Duration::from_secs(delay));
-
-                Some(self.buffer[path].to_owned())
-            }
-
-            fn append(&mut self, path: &Path, data: &str) {
-                let delay = (10.0 / self.speed as f32) as u64;
-                std::thread::sleep(Duration::from_secs(delay));
-
-                match self.read(path) {
-                    None => self.write(path, data),
-                    Some(read_content) => self.write(path, &format!("{read_content}{data}")),
-                }
-            }
-        }
-    }
-
     mod simple_bound {
-        use super::*;
-
-        #[derive(Copy, Clone)]
-        enum LoggerLevel {
-            Disabled,
-            Error,
-            Warning,
-            Info,
-            Debug,
-        }
-
-        struct Logger<T: Storage> {
-            driver: T,
-            level: LoggerLevel,
-            file_name: Option<PathBuf>,
-        }
-
-        impl<T: Storage> Logger<T> {
-            pub fn new(level: LoggerLevel, driver: T) -> Self {
-                Self {
-                    level,
-                    driver,
-                    file_name: None,
-                }
-            }
-
-            pub fn new_log_file(&mut self, path: &Path) {
-                self.file_name = Some(PathBuf::from(path));
-            }
-
-            fn core_log(&mut self, message: &str) {
-                let file_name = self.file_name.as_ref().expect("File name is empty!");
-
-                self.driver.append(&file_name, &format!("{message}\n"));
-            }
-
-            pub fn dbg(&mut self, message: &str) {
-                if (self.level as i32) < (LoggerLevel::Debug as i32) {
-                    return;
-                }
-
-                self.core_log(message);
-            }
-
-            pub fn inf(&mut self, message: &str) {
-                if (self.level as i32) < (LoggerLevel::Info as i32) {
-                    return;
-                }
-
-                self.core_log(message);
-            }
-
-            pub fn wrn(&mut self, message: &str) {
-                if (self.level as i32) < (LoggerLevel::Warning as i32) {
-                    return;
-                }
-
-                self.core_log(message);
-            }
-
-            pub fn err(&mut self, message: &str) {
-                if (self.level as i32) < (LoggerLevel::Error as i32) {
-                    return;
-                }
-
-                self.core_log(message);
-            }
-
-            pub fn print_current_log_file(&self) {
-                let file_name = self.file_name.as_ref().expect("File name is empty!");
-
-                match self.driver.read(&file_name) {
-                    None => println!("<File is Empty>"),
-                    Some(content) => println!("File content: {content}"),
-                }
-            }
-        }
+        use crate::storage::v3::{Logger, LoggerLevel};
+        #[allow(unused_imports)]
+        use crate::storage::{SDCard, SPIFlash};
+        use std::path::Path;
 
         #[test]
         fn test_logger() {
             let file_name = Path::new("090323.txt");
-            let driver = sd_card::SDCard::new("sd://");
-            // let driver = spi_flash::SPIFlash::new(20);
+            let driver = SDCard::new("sd://");
+            // let driver = SPIFlash::new(20);
 
             let mut logger = Logger::new(LoggerLevel::Warning, driver);
             logger.new_log_file(&file_name);
@@ -437,114 +118,17 @@ mod generic_bounds {
         }
     }
 
-    use crate::generic_bounds::spi_flash::SPIFlash;
-    use std::fmt::{write, Debug, Formatter};
-
-    impl Debug for SPIFlash {
-        fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-            write!(f, "SPI Flash with speed {} kHz", self.speed())
-        }
-    }
-
     mod multiple_bounds {
-        use super::*;
-        use logger::*;
+        use crate::storage::v3::{Logger, LoggerLevel, Storage};
+        use crate::storage::{SDCard, SPIFlash};
 
-        mod logger {
-            use super::*;
-
-            #[derive(Copy, Clone)]
-            pub enum LoggerLevel {
-                Disabled,
-                Error,
-                Warning,
-                Info,
-                Debug,
-            }
-
-            pub struct Logger<T: Storage> {
-                driver: T,
-                level: LoggerLevel,
-                file_name: Option<PathBuf>,
-            }
-
-            impl<T: Storage> Logger<T> {
-                pub fn level(&self) -> LoggerLevel {
-                    self.level
-                }
-
-                pub fn driver(&self) -> &T {
-                    &self.driver
-                }
-
-                pub fn new(level: LoggerLevel, driver: T) -> Self {
-                    Self {
-                        level,
-                        driver,
-                        file_name: None,
-                    }
-                }
-
-                pub fn new_log_file(&mut self, path: &Path) {
-                    self.file_name = Some(PathBuf::from(path));
-                }
-
-                fn core_log(&mut self, message: &str) {
-                    let file_name = self.file_name.as_ref().expect("File name is empty!");
-
-                    self.driver.append(&file_name, &format!("{message}\n"));
-                }
-
-                pub fn dbg(&mut self, message: &str) {
-                    if (self.level as i32) < (LoggerLevel::Debug as i32) {
-                        return;
-                    }
-
-                    self.core_log(message);
-                }
-
-                pub fn inf(&mut self, message: &str) {
-                    if (self.level as i32) < (LoggerLevel::Info as i32) {
-                        return;
-                    }
-
-                    self.core_log(message);
-                }
-
-                pub fn wrn(&mut self, message: &str) {
-                    if (self.level as i32) < (LoggerLevel::Warning as i32) {
-                        return;
-                    }
-
-                    self.core_log(message);
-                }
-
-                pub fn err(&mut self, message: &str) {
-                    if (self.level as i32) < (LoggerLevel::Error as i32) {
-                        return;
-                    }
-
-                    self.core_log(message);
-                }
-
-                pub fn print_current_log_file(&self) {
-                    let file_name = self.file_name.as_ref().expect("File name is empty!");
-
-                    match self.driver.read(&file_name) {
-                        None => println!("<File is Empty>"),
-                        Some(content) => println!("File content: {content}"),
-                    }
-                }
-            }
-        }
-
-        fn print_logger_info<T: Storage>(logger: &Logger<T>) {
+        fn print_logger_info<T: Storage>(_logger: &Logger<T>) {
             // format!("Logger <lvl: {:?}, driver: {:?}>", logger.level(), logger.driver());
         }
 
         #[test]
         fn test_print_logger_info() {
-            let logger_sd = Logger::new(LoggerLevel::Info, sd_card::SDCard::new("sd://"));
+            let logger_sd = Logger::new(LoggerLevel::Info, SDCard::new("sd://"));
             let logger_spi = Logger::new(LoggerLevel::Warning, SPIFlash::new(20));
 
             print_logger_info(&logger_sd);
@@ -553,97 +137,10 @@ mod generic_bounds {
     }
 
     mod where_clause {
-        use super::*;
-        use logger::*;
+        use crate::storage::v3::{Logger, Storage};
+        use std::fmt::Debug;
 
-        mod logger {
-            use super::*;
-
-            #[derive(Debug, Copy, Clone)]
-            pub enum LoggerLevel {
-                Disabled,
-                Error,
-                Warning,
-                Info,
-                Debug,
-            }
-
-            pub struct Logger<T: Storage> {
-                driver: T,
-                level: LoggerLevel,
-                file_name: Option<PathBuf>,
-            }
-
-            impl<T: Storage> Logger<T> {
-                pub fn level(&self) -> LoggerLevel {
-                    self.level
-                }
-
-                pub fn driver(&self) -> &T {
-                    &self.driver
-                }
-
-                pub fn new(level: LoggerLevel, driver: T) -> Self {
-                    Self {
-                        level,
-                        driver,
-                        file_name: None,
-                    }
-                }
-
-                pub fn new_log_file(&mut self, path: &Path) {
-                    self.file_name = Some(PathBuf::from(path));
-                }
-
-                fn core_log(&mut self, message: &str) {
-                    let file_name = self.file_name.as_ref().expect("File name is empty!");
-
-                    self.driver.append(&file_name, &format!("{message}\n"));
-                }
-
-                pub fn dbg(&mut self, message: &str) {
-                    if (self.level as i32) < (LoggerLevel::Debug as i32) {
-                        return;
-                    }
-
-                    self.core_log(message);
-                }
-
-                pub fn inf(&mut self, message: &str) {
-                    if (self.level as i32) < (LoggerLevel::Info as i32) {
-                        return;
-                    }
-
-                    self.core_log(message);
-                }
-
-                pub fn wrn(&mut self, message: &str) {
-                    if (self.level as i32) < (LoggerLevel::Warning as i32) {
-                        return;
-                    }
-
-                    self.core_log(message);
-                }
-
-                pub fn err(&mut self, message: &str) {
-                    if (self.level as i32) < (LoggerLevel::Error as i32) {
-                        return;
-                    }
-
-                    self.core_log(message);
-                }
-
-                pub fn print_current_log_file(&self) {
-                    let file_name = self.file_name.as_ref().expect("File name is empty!");
-
-                    match self.driver.read(&file_name) {
-                        None => println!("<File is Empty>"),
-                        Some(content) => println!("File content: {content}"),
-                    }
-                }
-            }
-        }
-
+        #[allow(unused)]
         fn print_logger_info<T>(logger: &Logger<T>)
         where
             T: Storage + Debug,
@@ -655,6 +152,7 @@ mod generic_bounds {
             );
         }
 
+        #[allow(unused)]
         fn print_logger_info2<T>(logger: &Logger<T>)
         where
             T: Storage,
@@ -669,8 +167,176 @@ mod generic_bounds {
     }
 }
 
-// TODO
-mod associate_types {}
+mod associate_types {
+    pub trait ProtoIterator {
+        type Item;
+
+        fn next(&mut self) -> Option<Self::Item>;
+    }
+
+    pub struct RingPointer<'a> {
+        index: usize,
+        coll: &'a Vec<u32>,
+    }
+
+    impl<'a> RingPointer<'a> {
+        pub fn new(coll: &'a Vec<u32>) -> Self {
+            Self { index: 0, coll }
+        }
+    }
+
+    impl<'a> ProtoIterator for RingPointer<'a> {
+        type Item = u32;
+
+        fn next(&mut self) -> Option<Self::Item> {
+            if self.coll.is_empty() {
+                return None;
+            }
+
+            let el = Some(self.coll[self.index]);
+
+            self.index += 1;
+            if self.index == self.coll.len() {
+                self.index = 0;
+            }
+
+            el
+        }
+    }
+
+    #[test]
+    fn ring_pointer_empty() {
+        let coll = vec![];
+        let mut ring_ptr = RingPointer::new(&coll);
+
+        assert_eq!(ring_ptr.next(), None);
+    }
+
+    #[test]
+    fn ring_pointer_one_element() {
+        let coll = vec![1];
+        let mut ring_ptr = RingPointer::new(&coll);
+
+        assert_eq!(ring_ptr.next(), Some(1));
+        assert_eq!(ring_ptr.next(), Some(1));
+    }
+
+    #[test]
+    fn ring_pointer_two_elements() {
+        let coll = vec![1, 2];
+        let mut ring_pointer = RingPointer::new(&coll);
+
+        assert_eq!(ring_pointer.next(), Some(1));
+        assert_eq!(ring_pointer.next(), Some(2));
+        assert_eq!(ring_pointer.next(), Some(1));
+    }
+}
+
+mod generics_vs_associate_tyes {
+    pub trait ProtoIterator<I> {
+        fn next(&mut self) -> Option<I>;
+    }
+
+    pub struct RingPointer<'a> {
+        index: usize,
+        coll: &'a Vec<u32>,
+    }
+
+    impl<'a> RingPointer<'a> {
+        #[allow(unused)]
+        pub fn new(coll: &'a Vec<u32>) -> Self {
+            Self { index: 0, coll }
+        }
+    }
+
+    impl<'a> ProtoIterator<u32> for RingPointer<'a> {
+        fn next(&mut self) -> Option<u32> {
+            if self.coll.is_empty() {
+                return None;
+            }
+
+            let el = Some(self.coll[self.index]);
+
+            self.index += 1;
+            if self.index == self.coll.len() {
+                self.index = 0;
+            }
+
+            el
+        }
+    }
+
+    impl<'a> ProtoIterator<String> for RingPointer<'a> {
+        fn next(&mut self) -> Option<String> {
+            todo!()
+        }
+    }
+}
+
+mod associate_types_and_generics {
+    pub trait ProtoIterator {
+        type Item;
+
+        fn next(&mut self) -> Option<Self::Item>;
+    }
+
+    pub struct RingPointer<'a, T> {
+        index: usize,
+        coll: &'a Vec<T>,
+    }
+
+    impl<'a, T> RingPointer<'a, T> {
+        pub fn new(coll: &'a Vec<T>) -> Self {
+            Self { index: 0, coll }
+        }
+    }
+
+    impl<'a, T> ProtoIterator for RingPointer<'a, T> {
+        type Item = &'a T;
+
+        fn next(&mut self) -> Option<Self::Item> {
+            if self.coll.is_empty() {
+                return None;
+            }
+
+            let el = Some(&self.coll[self.index]);
+
+            self.index += 1;
+            if self.index == self.coll.len() {
+                self.index = 0;
+            }
+
+            el
+        }
+    }
+
+    #[test]
+    fn ring_pointer_empty() {
+        let coll = Vec::<u32>::new();
+        let mut ring_ptr = RingPointer::new(&coll);
+
+        assert_eq!(ring_ptr.next(), None);
+    }
+
+    #[test]
+    fn ring_pointer_one_element() {
+        let coll = vec![1];
+        let mut ring_ptr = RingPointer::new(&coll);
+
+        assert_eq!(ring_ptr.next(), Some(&1));
+        assert_eq!(ring_ptr.next(), Some(&1));
+    }
+
+    #[test]
+    fn ring_pointer_two_elements() {
+        let coll = vec![1, 2];
+        let mut ring_pointer = RingPointer::new(&coll);
+
+        assert_eq!(ring_pointer.next(), Some(&1));
+        assert_eq!(ring_pointer.next(), Some(&2));
+        assert_eq!(ring_pointer.next(), Some(&1));
+    }
+}
 
 /// # Polimosfismo
 /// + A possibilidade de alterar a implementação de método, dependendo do objeto utilizado.
@@ -712,10 +378,12 @@ mod dynamic_dispatch {
             do_something(y);
         }
 
+        #[allow(unused)]
         fn do_something_u8(x: u8) {
             x.method();
         }
 
+        #[allow(unused)]
         fn do_something_string(x: String) {
             x.method();
         }
@@ -738,8 +406,13 @@ mod dynamic_dispatch {
         do_something_dyn(&x);
     }
 
-    /// # Por que _trait objects_ usando ponteiros?
-    ///
+    /// # Por que _trait objects_ usando indireção (& ou Box<T>)?
+    /// É necessário utilizar uma indireção (referências ou Box<T>), pois em rust todos os tipos
+    /// devem possuir um tamanho conhecido em tempo de compilação. No exemplo acima, temos que o
+    /// tipo do _trait object_ `Foo`, pode possuir o conteúdo de uma `String` (24 bytes), ou um
+    /// `u8` (1 byte), ou qualquer outro tipo que implementa o trait `Foo`. Desta forma, para
+    /// facilitar a utilização e diminuição de tamanho, é sempre utilizado uma indireção nos
+    /// _trait objects_.
     fn do_something_dyn_box(x: Box<dyn Foo>) {
         x.method();
     }
@@ -750,45 +423,156 @@ mod dynamic_dispatch {
         // let x = Box::new(7u8);
         do_something_dyn_box(x);
     }
-
-    // TODO Pesquisar!!
-    mod object_safety {}
 }
 
-mod impl_vs_dyn {}
-
-mod struct_states_with_traits {}
-
-mod iterator_trait {}
-
-mod from_and_into_traits {}
-
-mod read_and_write_traits {}
-
-mod operator_overload {}
-
-mod default_trait {}
-
-mod drop_trait {}
-
-mod exercicio {
-    #[derive(Debug, PartialEq, Eq)]
-    #[allow(unused)]
-    pub enum Comparison {
-        Equal,
-        Sublist,
-        Superlist,
-        Unequal,
+#[allow(unused)]
+mod impl_vs_dyn {
+    trait Foo {
+        fn method(&self) -> String;
     }
 
-    #[allow(unused)]
-    pub fn sublist<T: PartialEq>(_first_list: &[T], _second_list: &[T]) -> Comparison {
-        todo!()
+    fn do_something_impl(foo: impl Foo) -> impl Foo {
+        foo
+    }
+
+    fn do_something_dyn_ref(foo: &dyn Foo) -> &dyn Foo {
+        foo
+    }
+
+    fn do_something_dyn_box(foo: Box<dyn Foo>) -> Box<dyn Foo> {
+        foo
+    }
+
+    struct OnlyDynTrait {
+        foo: Box<dyn Foo>,
+    }
+}
+
+mod struct_state_with_traits {
+    pub trait State {
+        fn play(self: Box<Self>, player: &mut Player) -> Box<dyn State>;
+        fn stop(self: Box<Self>, player: &mut Player) -> Box<dyn State>;
+    }
+
+    pub struct StoppedState;
+
+    pub struct PausedState;
+
+    pub struct PlayingState;
+
+    impl State for StoppedState {
+        fn play(self: Box<Self>, player: &mut Player) -> Box<dyn State> {
+            println!("{} | Stopped -> Playing", player.music());
+            Box::new(PlayingState)
+        }
+
+        fn stop(self: Box<Self>, _player: &mut Player) -> Box<dyn State> {
+            println!("Already stopped");
+            self
+        }
+    }
+
+    impl State for PausedState {
+        fn play(self: Box<Self>, player: &mut Player) -> Box<dyn State> {
+            println!("{} | Paused -> Playing", player.music());
+            Box::new(PlayingState)
+        }
+
+        fn stop(self: Box<Self>, player: &mut Player) -> Box<dyn State> {
+            println!("{} | Paused -> Stopped", player.music());
+            Box::new(StoppedState)
+        }
+    }
+
+    impl State for PlayingState {
+        fn play(self: Box<Self>, player: &mut Player) -> Box<dyn State> {
+            println!("{} | Playing -> Paused", player.music());
+            Box::new(PausedState)
+        }
+
+        fn stop(self: Box<Self>, player: &mut Player) -> Box<dyn State> {
+            println!("{} | Playing -> Stopped", player.music());
+            Box::new(StoppedState)
+        }
+    }
+
+    pub struct Player {
+        music: String,
+    }
+
+    impl Player {
+        pub fn new(music: &str) -> Self {
+            Self {
+                music: music.to_string(),
+            }
+        }
+
+        pub fn music(&self) -> &str {
+            &self.music
+        }
     }
 
     #[test]
-    fn test_exercicio() {
-        todo!()
+    fn test_player_and_state() {
+        let mut player = Player::new("Track1.mp3");
+        let state = Box::new(StoppedState {});
+        let state = state.play(&mut player);
+        let state = state.play(&mut player);
+        let _state = state.play(&mut player);
+    }
+}
+
+mod struct_context_with_traits {
+    pub trait Interface {
+        type Driver: Driver;
+
+        fn open(self) -> Self::Driver;
+    }
+
+    pub trait Driver {
+        fn write(&mut self, content: Vec<u8>);
+        fn read(&self) -> Vec<u8>;
+    }
+
+    pub struct SpiIterface;
+
+    impl Interface for SpiIterface {
+        type Driver = SpiDriver;
+
+        fn open(self) -> Self::Driver {
+            println!("Opening SPI...");
+            SpiDriver { content: vec![] }
+        }
+    }
+
+    pub struct SpiDriver {
+        content: Vec<u8>,
+    }
+
+    impl Driver for SpiDriver {
+        fn write(&mut self, content: Vec<u8>) {
+            println!("Writing {content:?} to SPI...");
+            self.content.extend(content.iter());
+        }
+
+        fn read(&self) -> Vec<u8> {
+            self.content.clone()
+        }
+    }
+
+    #[test]
+    fn test_spi() {
+        let spi = SpiIterface {};
+        let mut driver = spi.open();
+
+        driver_test_routine(&mut driver);
+    }
+
+    fn driver_test_routine(driver: &mut impl Driver) {
+        driver.write(vec![1, 2, 3]);
+        let result = driver.read();
+
+        assert_eq!(result, vec![1, 2, 3]);
     }
 }
 
