@@ -444,7 +444,11 @@ mod impl_vs_dyn {
     }
 
     struct OnlyDynTrait {
-        foo: Box<dyn Foo>,
+        foo: Vec<Box<dyn Foo>>,
+    }
+
+    struct StaticDispatch<T: Foo> {
+        foo: T,
     }
 }
 
