@@ -64,6 +64,9 @@ mod rust_interfaces {
             let mut sd_card = SDCard::new("sd://");
             let mut flash = SPIFlash::new(10);
 
+            // let mut a = 0i32;
+            // driver_test_routine(&mut a);
+
             assert!(driver_test_routine(&mut sd_card));
             assert!(driver_test_routine(&mut flash));
         }
@@ -105,9 +108,9 @@ mod generic_bounds {
         fn test_logger() {
             let file_name = Path::new("090323.txt");
             let driver = SDCard::new("sd://");
-            // let driver = SPIFlash::new(20);
+            let driver = SPIFlash::new(20);
 
-            let mut logger = Logger::new(LoggerLevel::Warning, driver);
+            let mut logger = Logger::new(LoggerLevel::Info, driver);
             logger.new_log_file(&file_name);
 
             logger.wrn("Power is unstable");
@@ -121,9 +124,18 @@ mod generic_bounds {
     mod multiple_bounds {
         use crate::storage::v3::{Logger, LoggerLevel, Storage};
         use crate::storage::{SDCard, SPIFlash};
+        use std::fmt::Debug;
 
-        fn print_logger_info<T: Storage>(_logger: &Logger<T>) {
-            // format!("Logger <lvl: {:?}, driver: {:?}>", logger.level(), logger.driver());
+        fn print_logger_info<T: Storage + Debug>(logger: &Logger<T>) {
+            println!(
+                "Logger <lvl: {:?}, driver: {:?}>",
+                logger.level(),
+                logger.driver()
+            );
+        }
+
+        fn foo<T: PartialEq>(a: &[T], b: &[T]) -> bool {
+            todo!()
         }
 
         #[test]
@@ -141,7 +153,7 @@ mod generic_bounds {
         use std::fmt::Debug;
 
         #[allow(unused)]
-        fn print_logger_info<T>(logger: &Logger<T>)
+        fn print_logger_info<T>(logger: &Logger<T>) -> ()
         where
             T: Storage + Debug,
         {
@@ -274,24 +286,26 @@ mod generics_vs_associate_tyes {
 }
 
 mod associate_types_and_generics {
+    use std::fmt::Debug;
+
     pub trait ProtoIterator {
         type Item;
 
         fn next(&mut self) -> Option<Self::Item>;
     }
 
-    pub struct RingPointer<'a, T> {
+    pub struct RingPointer<'a, T: Debug> {
         index: usize,
         coll: &'a Vec<T>,
     }
 
-    impl<'a, T> RingPointer<'a, T> {
+    impl<'a, T: Debug> RingPointer<'a, T> {
         pub fn new(coll: &'a Vec<T>) -> Self {
             Self { index: 0, coll }
         }
     }
 
-    impl<'a, T> ProtoIterator for RingPointer<'a, T> {
+    impl<'a, T: Debug> ProtoIterator for RingPointer<'a, T> {
         type Item = &'a T;
 
         fn next(&mut self) -> Option<Self::Item> {
@@ -300,6 +314,7 @@ mod associate_types_and_generics {
             }
 
             let el = Some(&self.coll[self.index]);
+            let el = dbg!(el);
 
             self.index += 1;
             if self.index == self.coll.len() {
@@ -337,6 +352,8 @@ mod associate_types_and_generics {
         assert_eq!(ring_pointer.next(), Some(&1));
     }
 }
+
+// TODO Aula 7 acabou aqui
 
 /// # Polimosfismo
 /// + A possibilidade de alterar a implementação de método, dependendo do objeto utilizado.
