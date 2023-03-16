@@ -1,8 +1,10 @@
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
+// &str, String
 use std::str::FromStr;
 use std::time::Duration;
 
+#[derive(Debug)]
 pub struct SDCard {
     root: PathBuf,
     buffer: HashMap<PathBuf, String>,
@@ -79,6 +81,9 @@ pub mod v2 {
     pub trait Storage {
         fn write(&mut self, path: &Path, data: &str);
         fn read(&self, path: &Path) -> Option<String>;
+        fn flush(&mut self) {
+            println!("Flush default impl");
+        }
     }
 
     impl Storage for SDCard {
@@ -86,6 +91,7 @@ pub mod v2 {
             let mut path_buf = self.root.clone();
             path_buf.push(path);
             self.buffer.insert(path_buf, data.to_owned());
+            self.flush();
         }
 
         fn read(&self, path: &Path) -> Option<String> {
@@ -98,6 +104,10 @@ pub mod v2 {
 
             Some(self.buffer[&path_buf].to_owned())
         }
+
+        fn flush(&mut self) {
+            println!("SD Card flushing...");
+        }
     }
 
     impl Storage for SPIFlash {
@@ -105,6 +115,7 @@ pub mod v2 {
             let delay = (10.0 / self.speed as f32) as u64;
             std::thread::sleep(Duration::from_secs(delay));
             self.buffer.insert(PathBuf::from(path), data.to_owned());
+            self.flush();
         }
 
         fn read(&self, path: &Path) -> Option<String> {
@@ -202,6 +213,9 @@ pub mod v3 {
         fn write(&mut self, path: &Path, data: &str);
         fn read(&self, path: &Path) -> Option<String>;
         fn append(&mut self, path: &Path, data: &str);
+        fn flush(&mut self) {
+            println!("Flush default");
+        }
     }
 
     impl Storage for SDCard {
@@ -209,6 +223,7 @@ pub mod v3 {
             let mut path_buf = self.root.clone();
             path_buf.push(path);
             self.buffer.insert(path_buf, data.to_owned());
+            self.flush();
         }
 
         fn read(&self, path: &Path) -> Option<String> {
@@ -222,8 +237,15 @@ pub mod v3 {
             Some(self.buffer[&path_buf].to_owned())
         }
 
-        fn append(&mut self, _path: &Path, _data: &str) {
-            todo!()
+        fn append(&mut self, path: &Path, data: &str) {
+            match self.read(path) {
+                None => self.write(path, data),
+                Some(read_content) => {
+                    let content = format!("{}{}", read_content, data);
+                    self.write(path, &content);
+                }
+            }
+            self.flush();
         }
     }
 
