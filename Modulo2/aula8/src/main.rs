@@ -42,8 +42,10 @@ mod copy_and_clone {
         let obj_copy = CopySmall::default();
         let obj_clone = CloneSmall::default();
 
-        // move_small(obj_clone.clone());
+        move_small(obj_clone.clone());
         move_small(obj_clone);
+
+        copy_small(obj_copy);
         copy_small(obj_copy);
     }
 
@@ -51,25 +53,25 @@ mod copy_and_clone {
     /// [u8; 1000] não implementa Default!
     /// O máximo é [u8; 32]
     struct CloneLarge {
-        a: [u8; 1000],
+        a: [u8; 1024],
     }
 
     #[derive(Copy, Clone)]
     /// [u8; 1000] não implementa Default!
     /// O máximo é [u8; 32]
     struct CopyLarge {
-        a: [u8; 1000],
+        a: [u8; 1024],
     }
 
     impl Default for CloneLarge {
         fn default() -> Self {
-            Self { a: [0u8; 1000] }
+            Self { a: [0u8; 1024] }
         }
     }
 
     impl Default for CopyLarge {
         fn default() -> Self {
-            Self { a: [0u8; 1000] }
+            Self { a: [0u8; 1024] }
         }
     }
 
@@ -79,11 +81,12 @@ mod copy_and_clone {
 
     #[test]
     fn test_large() {
-        let obj_copy = CopyLarge { a: [0u8; 1000] };
-        let obj_clone = CloneLarge { a: [0u8; 1000] };
+        let obj_copy = CopyLarge::default();
+        let obj_clone = CloneLarge { a: [0u8; 1024] };
 
         move_large(obj_clone.clone());
         move_large(obj_clone);
+        copy_large(obj_copy.clone());
         copy_large(obj_copy);
     }
 
@@ -107,11 +110,16 @@ mod copy_and_clone {
 mod from_and_into_traits {
     use crate::storage::{Directory, FSEntry, File};
 
+    fn foo() {
+        let mut dir = Directory::new_empty("hello/");
+        dir.add_entry(FSEntry::new_file("hello.txt"));
+    }
+
     #[test]
     fn test_dir_to_entry() {
         let dir = Directory::new_empty("hello/");
-        let _dir_entry = FSEntry::from(dir);
-        // let _dir_entry: FSEntry = dir.into();
+        // let _dir_entry: FSEntry = FSEntry::from(dir);
+        let _dir_entry: FSEntry = dir.into();
     }
 
     #[test]
@@ -126,8 +134,8 @@ mod from_and_into_traits {
         let dir_entry = FSEntry::new_dir("hello/");
         let file_entry = FSEntry::new_file("hello.txt");
 
-        // let right_dir: Result<Directory, _> = dir_entry.try_into();
-        let right_dir = Directory::try_from(dir_entry);
+        let right_dir: Result<Directory, _> = dir_entry.try_into();
+        // let right_dir = Directory::try_from(dir_entry);
         let wrong_dir = Directory::try_from(file_entry);
 
         println!("First conversion result was done? {}", right_dir.is_ok());
@@ -146,6 +154,8 @@ mod from_and_into_traits {
         println!("Second conversion result was done? {}", wrong_file.is_ok());
     }
 }
+
+// TODO Aula 8 parou aqui!
 
 mod display {
     use crate::storage::{Directory, FSEntry, File, SDCard};
@@ -224,10 +234,35 @@ mod operator_overload {
 
         card.commit();
     }
+
+    #[allow(unused)]
+    use std::ops::AddAssign;
+
+    fn concat<T: AddAssign<U>, U>(mut first: T, second: U) -> T {
+        first += second;
+        first
+    }
+
+    #[test]
+    #[allow(unused)]
+    fn test_concat() {
+        let dir1 = Directory::new_empty("hello/");
+        let dir2 = Directory::new_empty("world/");
+        let file = File::new("person.txt");
+
+        let dir1 = concat(dir1, file);
+        concat(dir1, dir2);
+
+        let a = "Hello".to_string();
+        let b = ", World";
+
+        let res = concat(a, b);
+        println!("{}", res);
+    }
 }
 
 mod iterator_trait {
-    use crate::storage::{Directory, File, SDCard};
+    use crate::storage::{Directory, FSEntry, File, SDCard};
 
     #[test]
     fn test_iter_only_files() {
@@ -261,12 +296,13 @@ mod iterator_trait {
 
 mod drop_trait {
     use crate::storage::{Directory, File, SDCard};
+    use std::io::Write;
 
-    // impl Drop for SDCard {
-    //     fn drop(&mut self) {
-    //         self.commit();
-    //     }
-    // }
+    impl Drop for SDCard {
+        fn drop(&mut self) {
+            self.commit();
+        }
+    }
 
     #[test]
     fn test_drop() {
@@ -290,14 +326,45 @@ mod drop_trait {
         }
         println!("End of function");
     }
+
+    fn drop_test() {
+        let a = Box::new(23);
+        {
+            let s = String::from("Hello");
+        }
+
+        let mut a = std::fs::File::open("hello.txt").unwrap();
+        a.write(vec![1, 2, 3].as_slice());
+
+        // TODO something
+    }
 }
 
 mod super_traits {
+    use std::fmt::Debug;
     use std::io::{Read, Write};
+
+    pub struct World;
 
     pub trait Storage {}
 
+    impl Storage for World {}
+
     pub trait StorageExt: Read + Write {}
+
+    pub trait Storage2: Debug + Clone {}
+
+    // impl StorageExt for World {
+    //
+    // }
+    //
+    // impl Read for World {
+    //
+    // }
+    //
+    // impl Write for World {
+    //
+    // }
 
     // !!! Copy é um super trait que depende de Clone. Desta forma, quando implementamos o Copy
     //     para alguma struct, devemos também implementar Clone para essa mesma struct.
@@ -310,9 +377,6 @@ mod super_traits {
         c: Box<dyn StorageExt>,
     }
 }
-
-// TODO Próximas aulas
-mod deref_and_deref_mut {}
 
 mod dynamic_dispatch2 {
     // TODO Próximas aulas

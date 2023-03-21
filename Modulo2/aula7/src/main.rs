@@ -375,12 +375,14 @@ mod dynamic_dispatch {
 
     impl Foo for String {
         fn method(&self) -> String {
-            format!("string: {}", self)
+            format!("string: {}", self.to_uppercase())
         }
     }
 
     mod monomorphization {
         use super::*;
+
+        // !!! 'impl' nas funções também é static dispatch
 
         fn do_something<T: Foo>(x: T) {
             x.method();
@@ -419,7 +421,7 @@ mod dynamic_dispatch {
     #[test]
     fn test_dyn_coercing() {
         let x = "Hello".to_string();
-        // let x = 7u8;
+        let x = 7u8;
         do_something_dyn(&x);
     }
 
@@ -437,7 +439,7 @@ mod dynamic_dispatch {
     #[test]
     fn test_dyn_box() {
         let x = Box::new("Hello".to_string());
-        // let x = Box::new(7u8);
+        let x = Box::new(7u8);
         do_something_dyn_box(x);
     }
 }
@@ -449,6 +451,10 @@ mod impl_vs_dyn {
     }
 
     fn do_something_impl(foo: impl Foo) -> impl Foo {
+        foo
+    }
+
+    fn do_something_generic<T: Foo>(foo: T) -> T {
         foo
     }
 
@@ -466,6 +472,27 @@ mod impl_vs_dyn {
 
     struct StaticDispatch<T: Foo> {
         foo: T,
+    }
+
+    trait Animal {}
+
+    struct Dog;
+
+    struct Cat;
+
+    impl Animal for Dog {}
+
+    impl Animal for Cat {}
+
+    struct Collection {
+        animals: Vec<Box<dyn Animal>>,
+    }
+
+    #[test]
+    fn foo() {
+        let c = Collection {
+            animals: vec![Box::new(Cat), Box::new(Dog)],
+        };
     }
 }
 
@@ -545,9 +572,9 @@ mod struct_state_with_traits {
 
 mod struct_context_with_traits {
     pub trait Interface {
-        type Driver: Driver;
+        type D: Driver;
 
-        fn open(self) -> Self::Driver;
+        fn open(self) -> Self::D;
     }
 
     pub trait Driver {
@@ -558,9 +585,9 @@ mod struct_context_with_traits {
     pub struct SpiIterface;
 
     impl Interface for SpiIterface {
-        type Driver = SpiDriver;
+        type D = SpiDriver;
 
-        fn open(self) -> Self::Driver {
+        fn open(self) -> Self::D {
             println!("Opening SPI...");
             SpiDriver { content: vec![] }
         }

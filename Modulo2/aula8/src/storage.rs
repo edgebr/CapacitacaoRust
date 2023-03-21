@@ -28,6 +28,7 @@ impl SDCard {
 pub struct Directory {
     level: usize,
     name: String,
+    // Default -> ""
     children: Vec<FSEntry>,
 }
 
@@ -65,24 +66,29 @@ impl Directory {
     }
 
     pub fn add_entry(&mut self, mut entry: FSEntry) {
-        let None = self
-            .children
+        self.children
             .iter()
-            .find(|x| entry.name() == x.name()) else
-        {
-            println!("Entry already exist");
-            return;
-        };
-
-        entry.set_level(self.level + 1);
-        self.children.push(entry);
+            .position(|x| entry.name() == x.name())
+            .and_then(|x| {
+                println!("Already exist");
+                Some(x)
+            })
+            .or_else(|| {
+                entry.set_level(self.level + 1);
+                self.children.push(entry);
+                None
+            });
     }
 
     pub fn set_level(&mut self, level: usize) {
         self.level = level;
-        for child in self.children.iter_mut() {
-            child.set_level(self.level + 1);
-        }
+        self.children
+            .iter_mut()
+            .for_each(|x| x.set_level(self.level + 1));
+
+        // for child in self.children.iter_mut() {
+        //     child.set_level(self.level + 1);
+        // }
     }
 }
 
@@ -145,7 +151,7 @@ mod from_into {
     use super::*;
 
     impl From<Directory> for FSEntry {
-        fn from(value: Directory) -> Self {
+        fn from(value: Directory) -> FSEntry {
             FSEntry::Directory(value)
         }
     }
@@ -182,6 +188,21 @@ mod from_into {
 mod display {
     use super::*;
 
+    impl Display for FSEntry {
+        fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+            match self {
+                FSEntry::Directory(dir) => write!(f, "{}", dir),
+                FSEntry::File(file) => write!(f, "{}", file),
+            }
+        }
+    }
+
+    impl Display for File {
+        fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+            write!(f, "{} -> {{{}}}", self.name, self.content)
+        }
+    }
+
     impl Display for Directory {
         fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
             let mut children = String::new();
@@ -195,26 +216,12 @@ mod display {
             write!(f, "{}{}{}", self.name, new_line, children)
         }
     }
-
-    impl Display for File {
-        fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-            write!(f, "{} -> {{{}}}", self.name, self.content)
-        }
-    }
-
-    impl Display for FSEntry {
-        fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-            match self {
-                FSEntry::Directory(dir) => write!(f, "{}", dir),
-                FSEntry::File(file) => write!(f, "{}", file),
-            }
-        }
-    }
 }
 
 mod operator_overload {
     use super::*;
 
+    /// Directory + File -> Directory
     impl Add<File> for Directory {
         type Output = Directory;
 
@@ -224,6 +231,7 @@ mod operator_overload {
         }
     }
 
+    /// Directory += File
     impl AddAssign<File> for Directory {
         fn add_assign(&mut self, rhs: File) {
             self.add_entry(FSEntry::File(rhs));
