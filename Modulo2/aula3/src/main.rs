@@ -83,7 +83,6 @@ mod tests {
             }
         }
         dbg!(longest("Cebola", "Alho"));
-
     }
 
     #[test]
@@ -101,6 +100,7 @@ mod tests {
     fn lifetime_struct() {
         #[derive(Debug)]
         pub struct FullName<'b> {
+
             first_name: &'static str, // (&'static)"Hello"
             last_name: &'b str, //&String:: "Hello" + ...
         }
@@ -209,6 +209,7 @@ mod tests {
         first_is_smaller_than_second(3, 5).show();
         first_is_smaller_than_second(2, 0).show();
     }
+
     mod person {
         #[derive(Clone, Debug)]
         pub struct Person {
@@ -240,6 +241,7 @@ mod tests {
             }
         }
     }
+
     #[test]
     fn valid_func_mut_ref() {
         use person::Person;
