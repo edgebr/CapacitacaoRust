@@ -100,8 +100,8 @@ mod tests {
     fn lifetime_struct() {
         #[derive(Debug)]
         pub struct FullName<'b> {
-            first_name: &'static str,
-            // (&'static)"Hello"
+
+            first_name: &'static str, // (&'static)"Hello"
             last_name: &'b str, //&String:: "Hello" + ...
         }
         impl<'b> FullName<'b> {
