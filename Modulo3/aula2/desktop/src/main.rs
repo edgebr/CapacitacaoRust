@@ -9,15 +9,6 @@ mod wifi_sync {
         use std::thread::sleep;
         use std::time::Duration;
 
-        fn sim_wifi_connection(conn_callback: fn(bool)) {
-            loop {
-                sleep(Duration::from_secs(2));
-                conn_callback(true);
-                sleep(Duration::from_secs(5));
-                conn_callback(false);
-            }
-        }
-
         pub struct WifiSync {
             ssid: String,
             password: String,
@@ -37,12 +28,15 @@ mod wifi_sync {
                 });
             }
         }
-    }
 
-    static IS_CONNETED: AtomicBool = AtomicBool::new(false);
-
-    fn wifi_status_change(is_connected: bool) {
-        IS_CONNETED.store(is_connected, Ordering::SeqCst);
+        fn sim_wifi_connection(conn_callback: fn(bool)) {
+            loop {
+                sleep(Duration::from_secs(2));
+                conn_callback(true);
+                sleep(Duration::from_secs(5));
+                conn_callback(false);
+            }
+        }
     }
 
     pub fn main() {
@@ -53,6 +47,12 @@ mod wifi_sync {
         }
         println!("Connected!");
     }
+
+    fn wifi_status_change(is_connected: bool) {
+        IS_CONNETED.store(is_connected, Ordering::SeqCst);
+    }
+
+    static IS_CONNETED: AtomicBool = AtomicBool::new(false);
 }
 
 mod wifi_async {
@@ -100,9 +100,11 @@ mod wifi_async {
     #[tokio::main]
     pub async fn main() {
         let wifi_async = WifiAsync::new("network", "123456");
-        let (conn, _) = wifi_async.start();
+        let (conn, disconn) = wifi_async.start();
         conn.notified().await;
         println!("Connected!");
+        disconn.notified().await;
+        println!("Disconnected!");
     }
 }
 
