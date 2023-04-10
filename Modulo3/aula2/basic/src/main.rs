@@ -13,11 +13,18 @@ use hal::{
 
 static EXECUTOR: StaticCell<Executor> = StaticCell::new();
 
+async fn get_spi_data() -> [u8; 3] {
+    Timer::after(Duration::from_millis(1_000)).await;
+    [32, 42, 52]
+}
+
 #[embassy_executor::task]
 async fn task1() {
     loop {
         println!("Hello world from embassy using esp-hal-async!");
         Timer::after(Duration::from_millis(1_000)).await;
+        let data = get_spi_data().await;
+        println!("Data: {:?}", data);
     }
 }
 
