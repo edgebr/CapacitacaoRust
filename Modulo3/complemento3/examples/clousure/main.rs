@@ -5,12 +5,16 @@ mod function_pointer {
         format!("Hello, {name}")
     }
 
+    fn say_hello2(name: i32) -> String {
+        format!("Hello, {name}")
+    }
+
     #[test]
     fn test_fn_ptr() {
         let greetings = say_hello("Matheus".to_owned());
         println!("{greetings}");
 
-        let fn_ptr = say_hello;
+        let mut fn_ptr = say_hello;
         println!("{}", fn_ptr("Matheus".to_owned()));
     }
 
@@ -49,9 +53,9 @@ mod imut_clousure {
     fn test_imut_clousure() {
         let greeting = String::from("Goodbye");
 
-        let say_goodbye = |name: &str| format!("{}, {}", &greeting, name);
+        let say_goodbye = |name: String| format!("{}, {}", &greeting, name);
 
-        println!("{}", say_goodbye("Matheus"));
+        println!("{}", say_goodbye("Matheus".to_owned()));
     }
 
     fn print_callback_result<F>(arg: String, callback: F)
@@ -68,6 +72,7 @@ mod imut_clousure {
     #[test]
     fn test_imut_clousure_as_argument() {
         let greeting = String::from("Goodbye");
+
         let imut_clousure = |name| format!("{}, {}", greeting, name);
         let fn_clousure = |name| format!("Goodbye, {}", name);
 
@@ -79,6 +84,7 @@ mod imut_clousure {
     #[test]
     fn test_invalid_clousure() {
         let greeting = String::from("Goodbye");
+
         let imut_clousure = |name: String| format!("{}, {}", greeting, name);
         let fn_clousure = |name| format!("Hello, {}", name);
 
@@ -93,12 +99,12 @@ mod mut_clousure {
     fn test_mut_clousure() {
         let mut greeting = String::from("Goodbye");
 
-        let mut say_goodbye = |name: &str| {
+        let mut say_goodbye = |name: String| {
             greeting.remove(0);
             format!("{}, {}", &greeting, name)
         };
 
-        println!("{}", say_goodbye("Matheus"));
+        println!("{}", say_goodbye("Matheus".to_owned()));
     }
 
     fn print_callback_result<F>(arg: String, mut callback: F)
@@ -166,27 +172,27 @@ mod once_clousure {
     fn test_once_clousure() {
         let greeting = String::from("Goodbye");
 
-        let say_goodbye = |name: &str| {
+        let say_goodbye = |name: String| {
             let mut hello = greeting;
             hello.remove(0);
             format!("{}, {}", &hello, name)
         };
 
-        println!("{}", say_goodbye("Matheus"));
+        println!("{}", say_goodbye("Matheus".to_owned()));
     }
 
     #[test]
     fn test_once_closure_twice() {
         let greeting = String::from("Goodbye");
 
-        let say_goodbye = |name: &str| {
+        let say_goodbye = |name: String| {
             let mut hello = greeting;
             hello.remove(0);
             format!("{}, {}", &hello, name)
         };
 
-        println!("{}", say_goodbye("Matheus"));
-        // println!("{}", say_goodbye("Matheus"));
+        println!("{}", say_goodbye("Matheus".to_owned()));
+        // println!("{}", say_goodbye("Matheus".to_owned()));
     }
 
     #[test]
@@ -201,7 +207,7 @@ mod once_clousure {
 
         println!("{}", say_goodbye("Matheus".to_owned()));
         println!("{}", say_hello("Matheus".to_owned()));
-        // println!("{}", say_hello("Matheus".to_owned()));
+        println!("{}", say_hello("Matheus".to_owned()));
     }
 
     fn print_callback_result<F>(arg: String, mut callback: F)
@@ -278,14 +284,14 @@ mod once_clousure {
         let move_clousure = move |name: String| format!("{}, {}", greeting4, name);
 
         /* FnMut() <- FnMut(), Fn(), fn()  */
-        print_callback_result_fn_mut("Matheus".to_owned(), move_clousure);
+        // print_callback_result_fn_mut("Matheus".to_owned(), move_clousure);
         // print_callback_result_fn_mut("Matheus".to_owned(), once_clousure);
         print_callback_result_fn_mut("Matheus".to_owned(), mut_clousure);
         print_callback_result_fn_mut("Matheus".to_owned(), imut_clousure);
         print_callback_result_fn_mut("Matheus".to_owned(), fn_clousure);
 
         /* Fn() <- Fn(), fn()  */
-        // print_callback_result_fn_imut("Matheus".to_owned(), move_clousure);
+        print_callback_result_fn_imut("Matheus".to_owned(), move_clousure);
         // print_callback_result_fn_imut("Matheus".to_owned(), once_clousure);
         // print_callback_result_fn_imut("Matheus".to_owned(), mut_clousure);
         print_callback_result_fn_imut("Matheus".to_owned(), imut_clousure);

@@ -1,117 +1,29 @@
 #![allow(unused)]
 
-mod physical {
-    struct System {}
+mod physical;
+mod signals;
 
-    impl Default for System {
-        fn default() -> Self {
-            Self {}
-        }
-    }
-
-    impl System {
-        fn sensor(&mut self, t: f32) -> f32 {
-            const TAU: f32 = 0.1;
-
-            1.0 - f32::exp(-t / TAU)
-        }
-    }
-}
-
-mod signals {
-    trait Wave {
-        fn compute(&self, t: f32) -> f32;
-    }
-
-    struct Sine {
-        period: f32,
-        amplitude: f32,
-        offset: f32,
-    }
-
-    impl Sine {
-        fn new(period: f32, amplitude: f32, offset: f32) -> Self {
-            Self {
-                period,
-                amplitude,
-                offset,
-            }
-        }
-    }
-
-    impl Wave for Sine {
-        fn compute(&self, t: f32) -> f32 {
-            let pi = std::f32::consts::PI;
-
-            (self.amplitude * f32::sin(2.0 * pi * (1.0 / self.period) * t)) + self.offset
-        }
-    }
-
-    struct SawTooth {
-        period: f32,
-        amplitude: f32,
-        offset: f32,
-    }
-
-    impl SawTooth {
-        pub fn new(period: f32, amplitude: f32, offset: f32) -> Self {
-            Self {
-                period,
-                amplitude,
-                offset,
-            }
-        }
-    }
-
-    impl Wave for SawTooth {
-        fn compute(&self, t: f32) -> f32 {
-            let now = t % self.period;
-
-            (self.amplitude * (now / self.period)) + self.offset
-        }
-    }
-
-    struct SquareWave {
-        period: f32,
-        amplitude: f32,
-        offset: f32,
-    }
-
-    impl SquareWave {
-        pub fn new(period: f32, amplitude: f32, offset: f32) -> Self {
-            Self {
-                period,
-                amplitude,
-                offset,
-            }
-        }
-    }
-
-    impl Wave for SquareWave {
-        fn compute(&self, t: f32) -> f32 {
-            let now = t % self.period;
-            let state = if now >= (self.period / 2.0) { 1.0 } else { 0.0 };
-
-            (self.amplitude * state) + self.offset
-        }
-    }
-}
+use crate::signals::sine::Sine;
+use crate::signals::square::SquareWave;
+use crate::signals::SawTooth;
+use signals::*;
+use std::io::Error as Err;
 
 #[test]
 fn test_graphs() {
     let total = 1_000;
     let x_max = 2.0 * std::f32::consts::PI;
 
-    // let sin = signals::Sine::new(x_max, 1.0, 0.0);
-    // let saw_tooth = signals::SawTooth::new(x_max, 1.0, 0.0);
-    // let square = signals::SquareWave::new(x_max, 1.0, 0.0);
+    let sin = Sine::new(x_max, 1.0, 0.0);
+    let saw_tooth = SawTooth::new(x_max, 1.0, 0.0);
+    let square = SquareWave::new(x_max, 1.0, 0.0);
 
     assert!(plot_serie(
         (0..total)
             .map(|t| {
                 let t = t as f32 * (x_max / (total as f32 - 1.0));
-                0.0
-                // sin.compute(t)
+                // 0.0
+                sin.compute(t)
             })
             .collect(),
         "sin",
@@ -125,8 +37,8 @@ fn test_graphs() {
         (0..total)
             .map(|t| {
                 let t = t as f32 * (x_max / (total as f32 - 1.0));
-                0.0
-                // saw_tooth.compute(t)
+                // 0.0
+                saw_tooth.compute(t)
             })
             .collect(),
         "sawtooth",
@@ -140,8 +52,8 @@ fn test_graphs() {
         (0..total)
             .map(|t| {
                 let t = t as f32 * (x_max / (total as f32 - 1.0));
-                0.0
-                // square.compute(t)
+                // 0.0
+                square.compute(t)
             })
             .collect(),
         "square",
@@ -159,11 +71,11 @@ fn test_system() {
     let x_max = 1.5;
 
     let mut output = vec![];
-    // let mut system = physical::System::default();
+    let mut system = physical::System::default();
 
     for t in 0..total {
         let t = t as f32 * (x_max / (total as f32 - 1.0));
-        // output.push(system.sensor(t));
+        output.push(system.sensor(t));
     }
 
     assert!(plot_serie(
