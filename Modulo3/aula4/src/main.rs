@@ -12,9 +12,18 @@ fn main() -> ! {
 
     rprintln!("Hello, world!");
 
-    // empty!();
+    tests();
+
+    loop {}
+}
+
+#[allow(unused)]
+fn tests() {
+    empty!();
     let res = double!(3);
     rprintln!("{}", res);
+
+    say_hello!();
 
     macros::separators::test_separators();
 
@@ -24,9 +33,11 @@ fn main() -> ! {
     macros::multiple_args::test_multiple_args();
     macros::multiple_args::test_mult_types();
 
-    serde_examples::test_serde();
+    if let Err(err) = serde_examples::test_serde() {
+        rprintln!("test_serde error: {:?}", err);
+    }
 
-    loop {}
+    serde_examples::test_gnss_msgs();
 }
 
 #[allow(unused)]
@@ -36,6 +47,7 @@ mod macros {
 
     #[macro_use]
     pub mod basic {
+        #[macro_export]
         macro_rules! empty {
             () => {};
         }
@@ -48,6 +60,7 @@ mod macros {
             };
         }
 
+        #[macro_export]
         macro_rules! say_hello {
             () => {
                 rprintln!("Hello");
@@ -75,8 +88,8 @@ mod macros {
         }
 
         pub fn test_separators() {
-            power!(2i32 => 2);
             power_v2!(2i32, 2);
+            power!(2i32 => 2);
             power_v3!(2i32; 2);
         }
     }
@@ -85,18 +98,20 @@ mod macros {
         use super::*;
 
         macro_rules! greetings {
-            (title: $title:expr, name: $name:expr) => {
+            (title = $title:expr, name = $name:expr) => {
                 rprintln!("Hello {}. {}", $title, $name);
             };
         }
 
         pub fn test_greetings() {
+            greetings!(title= "Mr", name= "Robson");
+
             greetings! {
-                title: "Mr.",
-                name: "Matheus"
+                title= "Mr",
+                name= "Matheus"
             }
 
-            greetings![title: "Mrs.", name: "Marta"];
+            greetings![title= "Mrs", name= "Marta"];
         }
 
         macro_rules! greetings_v2 {
@@ -131,9 +146,9 @@ mod macros {
         }
 
         pub fn test_multiple_args() {
-            rprintln!("{}", sum_v2!(1, 2));
-            rprintln!("{}", sum_v2!(1, 2, 3));
-            rprintln!("{}", sum_v2!(1, 2, 3, 4));
+            rprintln!("sum_v2: {}", sum_v2!(1, 2));
+            rprintln!("sum_v2: {}", sum_v2!(1, 2, 3));
+            rprintln!("sum_v2: {}", sum_v2!(1, 2, 3, 4, 5, 5));
         }
 
         macro_rules! zero_or_more {
@@ -201,6 +216,7 @@ mod macros {
             literal!(123);
             literal!(true);
             literal!('a');
+            literal!(2.2);
 
             // literal!(1 + 2);
         }
@@ -233,14 +249,16 @@ mod macros {
         }
 
         fn use_block() {
-            block! {{
-                let a = 1;
-                if (a > 2) {
-                    35.0
-                } else {
-                    0.0
+            block! {
+                {
+                    let a = 1;
+                    if (a > 2) {
+                        35.0
+                    } else {
+                        0.0
+                    }
                 }
-            }}
+            }
         }
 
         macro_rules! types {
@@ -286,9 +304,9 @@ mod macros {
     macro_rules! my_struct {
         (
             $v:vis $name:ident => {
-                $(
-                    $field:ident<$field_type:ty>
-                ),* $(,)?
+                $
+                  ($field:ident<$field_type:ty>),
+                * $(,)?
             }
         )
         =>
@@ -302,11 +320,12 @@ mod macros {
     my_struct! {
         pub Hello => {
             a<i32>,
-            b<i32>,
+            b<i32>
         }
     }
 }
 
+#[allow(unused)]
 mod serde_examples {
     use rtt_target::rprintln;
     use serde::{Deserialize, Serialize};
@@ -327,19 +346,66 @@ mod serde_examples {
         value: f32,
     }
 
-    pub fn test_serde() {
+    pub fn test_serde() -> Result<(), Error> {
         let pkt = Packet {
             id: 0,
             name: "Temperature",
             value: 0.3,
         };
 
-        let pkt_json: heapless::String<30> = serde_json_core::to_string(&pkt).unwrap();
-        println!("pkt: {}", pkt_json);
+        let pkt_json: heapless::String<30> = serde_json_core::to_string(&pkt)?;
+        println!("pkt as string: \"{}\"", pkt_json);
 
         let (pkt_from_str, _) =
-            serde_json_core::from_str::<Packet>("{\"id\":1,\"name\":\"Acc\",\"value\":9.8}")
-                .unwrap();
-        println!("pkt: {:?}", pkt_from_str);
+            serde_json_core::from_str::<Packet>("{\"id\":1,\"name\":\"Acc\",\"value\":9.8}")?;
+        println!("pkt as obj: {:?}", pkt_from_str);
+
+        Ok(())
+    }
+
+    #[derive(Debug)]
+    pub enum Error {
+        Serialize,
+        Deserialize,
+    }
+
+    impl From<serde_json_core::ser::Error> for Error {
+        fn from(_value: serde_json_core::ser::Error) -> Self {
+            Error::Serialize
+        }
+    }
+
+    impl From<serde_json_core::de::Error> for Error {
+        fn from(_value: serde_json_core::de::Error) -> Self {
+            Error::Deserialize
+        }
+    }
+
+    macro_rules! gnss_msgs {
+        (typedef struct {.msg = $msg:literal, .expected = $expected:literal, .query = $query:literal $(,)?} $gnss_type:ident;) => {{
+            struct $gnss_type {
+                msg: heapless::String<{$msg.len()}>,
+                expected: heapless::String<{$expected.len()}>,
+                query: heapless::String<{$query.len()}>,
+            }
+            let __inner = $gnss_type {
+                msg: $msg.into(),
+                expected: $expected.into(),
+                query: $query.into(),
+            };
+            __inner
+        }};
+    }
+
+    pub fn test_gnss_msgs() {
+        let hello = gnss_msgs! {
+            typedef struct {
+                .msg = "one",
+                .expected = "two",
+                .query = "three",
+            } Hello;
+        };
+
+        rprintln!("hello.msg: {} [{}]", hello.msg, hello.msg.len());
     }
 }
