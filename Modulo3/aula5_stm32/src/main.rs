@@ -3,26 +3,31 @@
 
 use panic_halt as _;
 
-use crate::hal::{pac, prelude::*};
 use cortex_m_rt::entry;
+use rtt_target::{rprintln, rtt_init_print};
+
+use hal::{pac, prelude::*};
+use stm32f4xx_hal as hal;
+
 use embedded_graphics::{image::Image, image::ImageRaw, pixelcolor::BinaryColor, prelude::*};
 use embedded_hal::digital::v2::InputPin;
+use sh1106::{prelude::*, Builder};
+
+use rotary_encoder_embedded::standard::StandardMode;
+use rotary_encoder_embedded::{Direction, RotaryEncoder};
+
+use scapegoat::SgMap;
+
 use micromath::statistics::{Mean, StdDev, Variance};
 use micromath::vector::Vector;
 use micromath::vector::{Vector2d, Vector3d};
 use micromath::F32Ext;
-use rotary_encoder_embedded::standard::StandardMode;
-use rotary_encoder_embedded::{Direction, RotaryEncoder};
-use rtt_target::{rprintln, rtt_init_print};
-use scapegoat::SgMap;
-use sh1106::{prelude::*, Builder};
-use stm32f4xx_hal as hal;
 
 #[entry]
 fn main() -> ! {
     rtt_init_print!();
 
-    embed_math();
+    // embed_math();
 
     scapegoat_example();
 
@@ -154,7 +159,7 @@ fn embed_math() {
     rprintln!("log2 = {}", 8.0.log2());
     rprintln!("log2 = {}", 8_i32.ilog2());
 
-    rprintln!("exp = {}", 2.0.exp());
+    rprintln!("exp = {}", 2.0.exp()); // e ^ 2.0
 
     rprintln!("1/x = {}", 2.0.inv());
     rprintln!("1/sqrt(x) = {}", 2.0.invsqrt());
